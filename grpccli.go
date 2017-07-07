@@ -5,12 +5,9 @@ gRPC Client
 package main
 
 import (
-	//"context"
-
+	"fmt"
 	"log"
 	"math/rand"
-
-	"fmt"
 
 	xr "github.com/nleiva/xrgrpc/client"
 )
