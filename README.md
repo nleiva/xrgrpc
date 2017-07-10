@@ -1,9 +1,12 @@
-# Testing gRPC
-gRPC library for Cisco IOS XR
+# gRPC library for Cisco IOS XR
+
+Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) with message and service definitions.
 
 ## Usage
 
-This is not definitive, will change as we go.
+This is not definitive, will change as we go. Will soon move router config parameters to a config file.
+
+- Clear text
 
 ```bash
 $ go run grpccli.go -e text -c "show isis database"
@@ -19,6 +22,8 @@ mrstn-5502-2.cisco.com.00-00  0x0000000c   0x863f        1564            0/0/0
 
 $
 ```
+
+- JSON
 
 ```bash
 $ go run grpccli.go -e json -c "show isis database"
@@ -47,12 +52,7 @@ $ go run grpccli.go -e json -c "show isis database"
        }
       ]
      }
-    }
-   ]
-  }
- }
-}
-]
+...
 $
 ```
 
@@ -67,11 +67,17 @@ $protoc --go_out=plugins=grpc:. ems_grpc.proto
 ```
 !! IOS XR Configuration version = 6.2.2
 grpc
- port 56500
+ port 57344
  tls
  !
  address-family ipv6
 !
+```
+
+Port range
+
+```
+mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 56500 is outside of the range of [57344, 57999]. It will consume an additional LPTS entry.
 ```
 
 ## Cert file
