@@ -27,6 +27,11 @@ type CiscoGrpcClient struct {
 	Timeout  int
 }
 
+// NewCiscoGrpcClient is a CiscoGrpcClient constructor
+func NewCiscoGrpcClient() *CiscoGrpcClient {
+	return new(CiscoGrpcClient)
+}
+
 // Provides the user/password for the connection.
 // It implements the PerRPCCredentials interface.
 // https://godoc.org/google.golang.org/grpc/credentials#PerRPCCredentials.

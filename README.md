@@ -4,12 +4,12 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 ## Usage
 
-This is not definitive, will change as we go. Will soon move router config parameters to a config file.
+This is not definitive, will change as we go. Router config parameters are defined in [router.conf](router.conf).
 
 - Clear text
 
 ```bash
-$ go run grpccli.go -e text -c "show isis database"
+$ ./xrgrpc -cli "show isis database" -enc text
 
 ----------------------------- show isis database ------------------------------
 
@@ -26,7 +26,7 @@ $
 - JSON
 
 ```bash
-$ go run grpccli.go -e json -c "show isis database"
+$ ./xrgrpc -cli "show isis database" -enc json
 [{
  "Cisco-IOS-XR-clns-isis-oper:isis": {
 <snip>
