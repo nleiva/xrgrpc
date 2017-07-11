@@ -92,3 +92,10 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 -rw-rw-rw-  1 root root 1513 Jul  5 17:47 ems.pem
 [xrrouter.cisco.com:/var/xr/config/grpc]$
 ```
+
+## Compiled code
+
+GOARCH="amd64"
+
+- MAC OS X (GOOS=darwin): [xrgrpc](xrgrpc)
+- Windows (GOOS=windows): [xrgrpc.exe](xrgrpc.exe)
