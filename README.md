@@ -4,7 +4,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 ## Usage
 
-This is not definitive, will change as we go. Router config parameters are defined in [router.conf](router.conf).
+This is not definitive, will change as we go. Router config parameters are defined in [config.json](config.json).
 
 - Clear text
 

@@ -19,7 +19,7 @@ func main() {
 	// CLI to issue; defaults to "show grpc status"
 	cli := flag.String("cli", "show grpc status", "Command to execute")
 	// Config file; defaults to "router.conf"
-	file := flag.String("cfg", "router.conf", "Configuration file")
+	file := flag.String("cfg", "config.json", "Configuration file")
 	flag.Parse()
 	id := rand.Int63n(1000)
 	output := "Empty"
