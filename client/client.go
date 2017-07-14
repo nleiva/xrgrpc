@@ -117,9 +117,9 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 	}
 }
 
-// ShowCmdJsonOutput returns the output of a CLI show commands as text.
+// ShowCmdJSONOutput returns the output of a CLI show commands as a JSON structure output.
 // A lot of code duplication (from ShowCmdTextOutput). Will improve this.
-func ShowCmdJsonOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
+func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
 	// 'client' is the gRPC stub.
 	client := pb.NewGRPCExecClient(conn)
 
@@ -148,6 +148,41 @@ func ShowCmdJsonOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 		}
 		if len(reply.Jsonoutput) > 0 {
 			s += reply.Jsonoutput
+		}
+	}
+}
+
+// GetConfig returns the config for a specif YANG path elments descibed in js
+// A lot of code duplication (from ShowCmdTextOutput). Will improve this.
+func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error) {
+	// 'client' is the gRPC stub.
+	client := pb.NewGRPCConfigOperClient(conn)
+
+	// 'jsonArgs' is the object we send to the router via the stub.
+	jsonArgs := pb.ConfigGetArgs{ReqId: id, Yangpathjson: js}
+
+	// 'stream' is the streamed result that comes back from the target.
+	stream, err := client.GetConfig(context.Background(), &jsonArgs)
+	if err != nil {
+		return s, err
+	}
+
+	for {
+		// Loop through the responses in the stream until there is nothing left.
+		reply, err := stream.Recv()
+		if err == io.EOF {
+			return s, nil
+		}
+		if len(reply.Errors) != 0 {
+			err := errors.New("Error triggered by remote host")
+			fmt.Printf(
+				"GetConfig: ReqId %d, received error: %s\n",
+				id,
+				reply.Errors)
+			return s, err
+		}
+		if len(reply.Yangjson) > 0 {
+			s += reply.Yangjson
 		}
 	}
 }

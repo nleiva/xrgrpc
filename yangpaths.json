@@ -1,0 +1,6 @@
+{	
+    "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": [null],
+	"Cisco-IOS-XR-telemetry-model-driven-cfg:telemetry-model-driven": [null],
+	"Cisco-IOS-XR-ipv4-bgp-cfg:bgp": [null],
+	"Cisco-IOS-XR-clns-isis-cfg:isis": [null]
+}
