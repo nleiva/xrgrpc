@@ -5,13 +5,11 @@ gRPC Client library
 package xrgrpc
 
 import (
-	"errors"
-	"fmt"
 	"io"
-	"log"
 	"time"
 
 	pb "github.com/nleiva/xrgrpc/proto"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -60,8 +58,7 @@ func Connect(xr CiscoGrpcClient) (conn *grpc.ClientConn, err error) {
 	// creds provides the TLS credentials from the input certificate file.
 	creds, err := credentials.NewClientTLSFromFile(xr.Creds, xr.Options)
 	if err != nil {
-		log.Fatalf("Failed to construct TLS credentials: %v", err)
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to construct TLS credentialst")
 	}
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
@@ -77,42 +74,36 @@ func Connect(xr CiscoGrpcClient) (conn *grpc.ClientConn, err error) {
 	// conn represents a client connection to an RPC server (target).
 	conn, err = grpc.Dial(xr.Host, opts...)
 	if err != nil {
-		log.Fatalf("Fail to dial to target: %v", err)
-		return nil, err
+		return nil, errors.Wrap(err, "Fail to dial to target")
 	}
 	return conn, err
 }
 
 // ShowCmdTextOutput returns the output of a CLI show commands as text.
 func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
-	// 'client' is the gRPC stub.
-	client := pb.NewGRPCExecClient(conn)
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCExecClient(conn)
 
-	// 'cliArgs' is the object we send to the router via the stub.
-	cliArgs := pb.ShowCmdArgs{ReqId: id, Cli: cli}
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ShowCmdArgs{ReqId: id, Cli: cli}
 
-	// 'stream' is the streamed result that comes back from the target.
-	stream, err := client.ShowCmdTextOutput(context.Background(), &cliArgs)
+	// 'st' is the streamed result that comes back from the target.
+	st, err := c.ShowCmdTextOutput(context.Background(), &a)
 	if err != nil {
-		return s, err
+		return s, errors.Wrap(err, "gRPC ShowCmdTextOutput failed")
 	}
 
 	for {
 		// Loop through the responses in the stream until there is nothing left.
-		reply, err := stream.Recv()
+		r, err := st.Recv()
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(reply.Errors) != 0 {
-			err := errors.New("Error triggered by remote host")
-			fmt.Printf(
-				"ShowCmd: ReqId %d, received error: %s\n",
-				id,
-				reply.Errors)
-			return s, err
+		if len(r.Errors) != 0 {
+			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
 		}
-		if len(reply.Output) > 0 {
-			s += reply.Output
+		if len(r.Output) > 0 {
+			s += r.Output
 		}
 	}
 }
@@ -120,69 +111,79 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 // ShowCmdJSONOutput returns the output of a CLI show commands as a JSON structure output.
 // A lot of code duplication (from ShowCmdTextOutput). Will improve this.
 func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
-	// 'client' is the gRPC stub.
-	client := pb.NewGRPCExecClient(conn)
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCExecClient(conn)
 
-	// 'cliArgs' is the object we send to the router via the stub.
-	cliArgs := pb.ShowCmdArgs{ReqId: id, Cli: cli}
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ShowCmdArgs{ReqId: id, Cli: cli}
 
-	// 'stream' is the streamed result that comes back from the target.
-	stream, err := client.ShowCmdJSONOutput(context.Background(), &cliArgs)
+	// 'st' is the streamed result that comes back from the target.
+	st, err := c.ShowCmdJSONOutput(context.Background(), &a)
 	if err != nil {
-		return s, err
+		return s, errors.Wrap(err, "gRPC ShowCmdJSONOutput failed")
 	}
 
 	for {
 		// Loop through the responses in the stream until there is nothing left.
-		reply, err := stream.Recv()
+		r, err := st.Recv()
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(reply.Errors) != 0 {
-			err := errors.New("Error triggered by remote host")
-			fmt.Printf(
-				"ShowCmd: ReqId %d, received error: %s\n",
-				id,
-				reply.Errors)
-			return s, err
+		if len(r.Errors) != 0 {
+			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
 		}
-		if len(reply.Jsonoutput) > 0 {
-			s += reply.Jsonoutput
+		if len(r.Jsonoutput) > 0 {
+			s += r.Jsonoutput
 		}
 	}
 }
 
-// GetConfig returns the config for a specif YANG path elments descibed in js
+// GetConfig returns the config for a specif YANG path elments descibed in 'js'.
 // A lot of code duplication (from ShowCmdTextOutput). Will improve this.
 func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error) {
-	// 'client' is the gRPC stub.
-	client := pb.NewGRPCConfigOperClient(conn)
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
 
-	// 'jsonArgs' is the object we send to the router via the stub.
-	jsonArgs := pb.ConfigGetArgs{ReqId: id, Yangpathjson: js}
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ConfigGetArgs{ReqId: id, Yangpathjson: js}
 
-	// 'stream' is the streamed result that comes back from the target.
-	stream, err := client.GetConfig(context.Background(), &jsonArgs)
+	// 'st' is the streamed result that comes back from the target.
+	st, err := c.GetConfig(context.Background(), &a)
 	if err != nil {
-		return s, err
+		return s, errors.Wrap(err, "gRPC GetConfig failed")
 	}
 
 	for {
 		// Loop through the responses in the stream until there is nothing left.
-		reply, err := stream.Recv()
+		r, err := st.Recv()
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(reply.Errors) != 0 {
-			err := errors.New("Error triggered by remote host")
-			fmt.Printf(
-				"GetConfig: ReqId %d, received error: %s\n",
-				id,
-				reply.Errors)
-			return s, err
+		if len(r.Errors) != 0 {
+			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
 		}
-		if len(reply.Yangjson) > 0 {
-			s += reply.Yangjson
+		if len(r.Yangjson) > 0 {
+			s += r.Yangjson
 		}
 	}
+}
+
+// CLIConfig returns the config for a CLI elments descibed in 'cli'.
+// It is currently useless as the response message does not include any output.
+func CLIConfig(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.CliConfigArgs{ReqId: id, Cli: cli}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.CliConfig(context.Background(), &a)
+	if err != nil {
+		return s, errors.Wrap(err, "gRPC CliConfig failed")
+	}
+	//if len(r.Errors) != 0 {
+	return r.Errors, err
+	//}
+
 }

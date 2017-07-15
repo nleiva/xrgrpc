@@ -7,11 +7,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
-
-	"io/ioutil"
 
 	xr "github.com/nleiva/xrgrpc/client"
 )
@@ -53,6 +52,7 @@ func main() {
 			fmt.Printf("Couldn't read file: %v: %v\n", *ypath, err)
 		}
 		output, err = xr.GetConfig(conn, string(js), id)
+		// output, err = xr.CLIConfig(conn, "show run bgp", id)
 		if err != nil {
 			fmt.Printf("Couldn't get the config: %v\n", err)
 		}

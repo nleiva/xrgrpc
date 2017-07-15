@@ -4,7 +4,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 ## Usage
 
-A CLI example is provided to use the library. This is not definitive, will change as we go.
+A CLI example is provided to use the library. This is not definitive, it will change as we go.
 
 ### Get Config
 
@@ -31,7 +31,7 @@ $ ./xrgrpc -rpc "get-config" -ypath "yangpaths.json"
 
 ### Show Commands
 
-Provides the output for IOS XR cli commands on the router defined in [config.json](config.json). Two encondig options available:
+Provides the output for IOS XR cli commands on the router defined in [config.json](config.json). Two encoding options available:
 
 - Clear text
 
@@ -107,7 +107,7 @@ mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 565
 
 ## Certificate file
 
-You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [keys](keys) folder (or any other location specified in [config.json](config.json). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
+You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [keys](keys) folder (or any other location specified in [config.json](config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
 
 ```bash
 [xrrouter.cisco.com:/var/xr/config/grpc]$ ls -la
@@ -125,7 +125,7 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 The Go generated code in [ems_grpc.pb.go](proto/ems_grpc.pb.go) is the result of the following:
 
 ```bash
-$protoc --go_out=plugins=grpc:. ems_grpc.proto
+$ protoc --go_out=plugins=grpc:. ems_grpc.proto
 ```
 
 ## Compiling the Go client example
