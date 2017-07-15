@@ -6,6 +6,7 @@ package xrgrpc
 
 import (
 	"io"
+	"strconv"
 	"time"
 
 	pb "github.com/nleiva/xrgrpc/proto"
@@ -100,7 +101,7 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 			return s, nil
 		}
 		if len(r.Errors) != 0 {
-			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
+			return s, errors.New("Error triggered by remote host for ReqId: " + strconv.FormatInt(id, 10) + ": " + r.Errors)
 		}
 		if len(r.Output) > 0 {
 			s += r.Output
@@ -130,7 +131,7 @@ func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 			return s, nil
 		}
 		if len(r.Errors) != 0 {
-			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
+			return s, errors.New("Error triggered by remote host for ReqId: " + strconv.FormatInt(id, 10) + ": " + r.Errors)
 		}
 		if len(r.Jsonoutput) > 0 {
 			s += r.Jsonoutput
@@ -160,7 +161,7 @@ func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error)
 			return s, nil
 		}
 		if len(r.Errors) != 0 {
-			return s, errors.New("Error triggered by remote host for ReqId: " + string(id) + ": " + r.Errors)
+			return s, errors.New("Error triggered by remote host for ReqId: " + strconv.FormatInt(id, 10) + ": " + r.Errors)
 		}
 		if len(r.Yangjson) > 0 {
 			s += r.Yangjson
@@ -168,9 +169,8 @@ func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error)
 	}
 }
 
-// CLIConfig returns the config for a CLI elments descibed in 'cli'.
-// It is currently useless as the response message does not include any output.
-func CLIConfig(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
+// CLIConfig configs the target with CLI commands descibed in 'cli'.
+func CLIConfig(conn *grpc.ClientConn, cli string, id int64) error {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
 
@@ -180,10 +180,32 @@ func CLIConfig(conn *grpc.ClientConn, cli string, id int64) (s string, err error
 	// 'r' is the result that comes back from the target.
 	r, err := c.CliConfig(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC CliConfig failed")
+		return errors.Wrap(err, "gRPC CliConfig failed")
 	}
-	//if len(r.Errors) != 0 {
-	return r.Errors, err
-	//}
+	if len(r.Errors) != 0 {
+		return errors.New("Error triggered by remote host for ReqId: " + strconv.FormatInt(id, 10) + ": " + r.Errors)
+	}
+	return nil
+}
 
+// CommitConfig commits the config submitted with id 'id'.
+func CommitConfig(conn *grpc.ClientConn, id int64) (s string, err error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+
+	m := pb.CommitMsg{Label: "", Comment: ""}
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.CommitArgs{Msg: &m, ReqId: id}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.CommitConfig(context.Background(), &a)
+	if err != nil {
+		return s, errors.Wrap(err, "gRPC CommitConfig failed")
+	}
+	if len(r.Errors) != 0 {
+		return s, errors.New("Error triggered by remote host for ReqId: " + strconv.FormatInt(id, 10) + ": " + r.Errors)
+	}
+	// What about r.ResReqId?. Is it equal to ReqId?
+	return r.Result.String(), nil
 }

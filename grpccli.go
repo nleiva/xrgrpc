@@ -60,6 +60,17 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Horrible hack to easily test CLIConfig
+	if *rpc == "set-config" {
+		// Early testing, will soon move 'cf' to an input file
+		cf := "interface Lo65 ipv6 address 2001:db8::/128"
+		err = xr.CLIConfig(conn, cf, id)
+		if err != nil {
+			fmt.Printf("Failed to config the device: %v\n", err)
+		}
+		os.Exit(0)
+	}
+
 	// Return show command output based on encoding selected
 	switch *enc {
 	case "text":
