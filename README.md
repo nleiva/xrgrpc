@@ -8,10 +8,10 @@ A CLI example is provided to use the library. This is not definitive, it will ch
 
 ### Get Config
 
-Retrieves the config from the target device defined in [config.json](config.json) for the YANG paths specified in [yangpaths.json](yangpaths.json)
+Retrieves the config from the target device defined in [config.json](examples/input/config.json) for the YANG paths specified in [yangpaths.json](examples/input/yangpaths.json)
 
 ```bash
-$ ./xrgrpc -rpc "get-config" -ypath "yangpaths.json"
+examples/getconfig$ ./getconfig
 {
  "data": {
   "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": {
@@ -31,12 +31,12 @@ $ ./xrgrpc -rpc "get-config" -ypath "yangpaths.json"
 
 ### Show Commands
 
-Provides the output for IOS XR cli commands on the router defined in [config.json](config.json). Two encoding options available:
+Provides the output for IOS XR cli commands on the router defined in [config.json](examples/input/config.json). Two encoding options available:
 
 - Clear text
 
 ```bash
-$ ./xrgrpc -cli "show isis database" -enc text
+examples/showcmd$ ./showcmd -cli "show isis database" -enc text
 
 ----------------------------- show isis database ------------------------------
 
@@ -53,7 +53,7 @@ $
 - JSON
 
 ```bash
-$ ./xrgrpc -cli "show isis database" -enc json
+examples/showcmd$ ./showcmd -cli "show isis database" -enc json
 [{
  "Cisco-IOS-XR-clns-isis-oper:isis": {
 <snip>
@@ -83,6 +83,15 @@ $ ./xrgrpc -cli "show isis database" -enc json
 $
 ```
 
+### CLI config
+
+Apply cli commands to the device/router
+
+```bash
+examples/setconfig$ ./setconfig -cli "interface Lo11 ipv6 address 2001:db8::/128"
+Config Applied
+```
+
 ## XR Config
 
 The following is the configuration requiered on the IOS XR device in order to enable gRPC dial-in.
@@ -107,7 +116,7 @@ mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 565
 
 ## Certificate file
 
-You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [keys](keys) folder (or any other location specified in [config.json](config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
+You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [input](examples/input) folder (or any other location specified in [config.json](examples/input/config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
 
 ```bash
 [xrrouter.cisco.com:/var/xr/config/grpc]$ ls -la

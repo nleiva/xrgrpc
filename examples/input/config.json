@@ -1,0 +1,8 @@
+{
+  "User":"cisco",
+  "Password": "cisco",
+  "Host": "[2001:420:2cff:1204::5502:1]:57344",
+  "Creds": "../input/ems.pem",
+  "Options": "ems.cisco.com",
+  "Timeout": 5
+}
