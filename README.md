@@ -33,7 +33,7 @@ examples/getconfig$ ./getconfig
 
 Provides the output for IOS XR cli commands on the router defined in [config.json](examples/input/config.json). Two encoding options available:
 
-- Clear text
+- **Clear text**
 
 ```bash
 examples/showcmd$ ./showcmd -cli "show isis database" -enc text
@@ -50,7 +50,7 @@ mrstn-5502-2.cisco.com.00-00  0x0000000c   0x863f        1564            0/0/0
 $
 ```
 
-- JSON
+- **JSON**
 
 ```bash
 examples/showcmd$ ./showcmd -cli "show isis database" -enc json
@@ -85,7 +85,7 @@ $
 
 ### Configuring the router
 
-- CLI config (Merge)
+- **CLI config** (Merge)
 
 Apply cli commands to the device/router
 
@@ -104,9 +104,9 @@ interface Loopback11
 !
 ```
 
-- JSON (Merge)
+- **JSON** (Merge)
 
-Apply YANG/JSON formatted config to the device/router. It reads the info in [yangconfig.json](examples/input/yangconfig.json).
+Applies YANG/JSON formatted config to the device/router. It reads the info from [yangconfig.json](examples/input/yangconfig.json).
 
 ```bash
 examples/mergeconfig$ ./mergeconfig 
@@ -123,6 +123,31 @@ interface Loopback201
  ipv6 address 2001:db8:20::1/128
 !
 ```
+
+### Removing router config
+
+- **JSON**
+
+Removes YANG/JSON formatted config on the device/router. It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json).
+
+```bash
+examples/deleteconfig$ ./deleteconfig 
+Config Deleted -> Request ID: 236, Response ID: 236
+nleiva@~/go/src/github.com/nleiva/xrgrpc/examples/deleteconfig$ 
+```
+
+On the router:
+
+```
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show configuration commit changes 1000000039
+Mon Jul 17 15:54:59.221 EDT
+Building configuration...
+!! IOS XR Configuration version = 6.2.2.22I-Lindt
+no interface Loopback201
+no interface Loopback301
+end
+```
+
 
 ## XR gRPC Config
 

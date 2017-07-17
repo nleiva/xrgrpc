@@ -1,0 +1,14 @@
+{
+ "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": {
+  "interface-configuration": [
+   {
+    "active": "act",
+    "interface-name": "Loopback201"
+   },
+   {
+    "active": "act",
+    "interface-name": "Loopback301"
+   }
+  ]
+ }
+}
