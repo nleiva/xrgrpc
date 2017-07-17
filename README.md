@@ -161,7 +161,7 @@ On the router:
 RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show configuration commit changes 1000000039
 Mon Jul 17 15:54:59.221 EDT
 Building configuration...
-!! IOS XR Configuration version = 6.2.2.22I-Lindt
+!! IOS XR Configuration version = 6.2.2.22I
 no interface Loopback201
 no interface Loopback301
 end
