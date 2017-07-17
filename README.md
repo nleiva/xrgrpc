@@ -1,14 +1,14 @@
 # gRPC library for Cisco IOS XR
 
-Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for message and service definitions.
+Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for the description of the service interface and the structure of the payload messages. gRPC uses protocol buffers as the Interface Definition Language (IDL).
 
 ## Usage
 
-A CLI example is provided to use the library. This is not definitive, it will change as we go.
+CLI examples to use the library are provided in the [examples](examples/) folder. The CLI specified is not definitive and will most likely change as we go.
 
 ### Get Config
 
-Retrieves the config from the target device defined in [config.json](examples/input/config.json) for the YANG paths specified in [yangpaths.json](examples/input/yangpaths.json)
+Retrieves the config from the target device described in [config.json](examples/input/config.json) for the YANG paths specified in [yangpaths.json](examples/input/yangpaths.json)
 
 ```bash
 examples/getconfig$ ./getconfig
@@ -31,7 +31,7 @@ examples/getconfig$ ./getconfig
 
 ### Show Commands
 
-Provides the output for IOS XR cli commands on the router defined in [config.json](examples/input/config.json). Two encoding options available:
+Provides the output of IOS XR cli commands on the router defined in [config.json](examples/input/config.json). Two output format options are available; Unstructured text and JSON encoded:
 
 - **Clear text**
 
@@ -87,7 +87,7 @@ $
 
 - **CLI config** (Merge)
 
-Apply cli commands to the device/router
+Applies CLI config commands on the device/router.
 
 ```bash
 examples/setconfig$ ./setconfig -cli "interface Lo11 ipv6 address 2001:db8::/128"
@@ -106,7 +106,7 @@ interface Loopback11
 
 - **JSON** (Merge)
 
-Applies YANG/JSON formatted config to the device/router. It reads the info from [yangconfig.json](examples/input/yangconfig.json).
+Applies YANG/JSON formatted config to the device/router (merges with existing config). It reads the target from [yangconfig.json](examples/input/yangconfig.json). The 
 
 ```bash
 examples/mergeconfig$ ./mergeconfig 
@@ -124,16 +124,35 @@ interface Loopback201
 !
 ```
 
+- **JSON** (Replace)
+
+Applies YANG/JSON formatted config to the device/router (replaces the config for this section). It reads the info from [yangconfigrep.json](examples/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
+
+```bash
+examples/replaceconfig$ ./replaceconfig 
+Config Replaced -> Request ID: 543, Response ID: 543
+```
+
+On the router:
+
+```
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run int lo201
+Mon Jul 17 17:06:13.376 EDT
+interface Loopback201
+ description New Loopback 221
+ ipv6 address 2001:db8:22::2/128
+!
+```
+
 ### Removing router config
 
 - **JSON**
 
-Removes YANG/JSON formatted config on the device/router. It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json).
+Removes YANG/JSON formatted config on the device/router. It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json). The follwowing example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](examples/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](examples/input/yangdelintdesc.json) for only the description of the interface.
 
 ```bash
 examples/deleteconfig$ ./deleteconfig 
 Config Deleted -> Request ID: 236, Response ID: 236
-nleiva@~/go/src/github.com/nleiva/xrgrpc/examples/deleteconfig$ 
 ```
 
 On the router:
@@ -151,7 +170,7 @@ end
 
 ## XR gRPC Config
 
-The following is the configuration requiered on the IOS XR device in order to enable gRPC dial-in.
+The following is the configuration requiered on the IOS XR device in order to enable gRPC dial-in with TLS support.
 
 ```
 !! IOS XR Configuration version = 6.2.2

@@ -233,7 +233,7 @@ func MergeConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error
 	return r.ResReqId, nil
 }
 
-// DeleteConfig configs the target with YANG/JSON config specified in 'js'.
+// DeleteConfig removes the config config specified in 'js' on the target device.
 func DeleteConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -245,6 +245,26 @@ func DeleteConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err erro
 	r, err := c.DeleteConfig(context.Background(), &a)
 	if err != nil {
 		return i, errors.Wrap(err, "gRPC DeleteConfig failed")
+	}
+	if len(r.Errors) != 0 {
+		si := strconv.FormatInt(id, 10)
+		return i, errors.New("Error triggered by remote host for ReqId " + si + ": " + r.Errors)
+	}
+	return r.ResReqId, nil
+}
+
+// ReplaceConfig replaces the config specified in 'js' on the target device.
+func ReplaceConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ConfigArgs{ReqId: id, Yangjson: js}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.ReplaceConfig(context.Background(), &a)
+	if err != nil {
+		return i, errors.Wrap(err, "gRPC ReplaceConfig failed")
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
