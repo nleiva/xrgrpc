@@ -9,11 +9,20 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"time"
 
 	xr "github.com/nleiva/xrgrpc"
 )
 
+func timeTrack(start time.Time) {
+	elapsed := time.Since(start)
+	log.Printf("This process took %s\n", elapsed)
+}
+
 func main() {
+	// To time this process
+	defer timeTrack(time.Now())
+
 	// Encoding option; defaults to JSON
 	enc := flag.String("enc", "json", "Encoding: 'json' or 'text'")
 	// CLI to issue; defaults to "show grpc status"
@@ -22,7 +31,8 @@ func main() {
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 
 	flag.Parse()
-	id := rand.Int63n(1000)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	id := r.Int63n(1000)
 	output := "Empty"
 
 	// Define target parameters from the configuration file
@@ -51,6 +61,5 @@ func main() {
 	if err != nil {
 		fmt.Printf("Couldn't get the cli output: %v\n", err)
 	}
-	fmt.Print(output)
-
+	fmt.Println(output)
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"time"
 
 	xr "github.com/nleiva/xrgrpc"
 )
@@ -21,7 +22,8 @@ func main() {
 	// YANG path arguments; defaults to "yangpaths.json"
 
 	flag.Parse()
-	id := rand.Int63n(1000)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	id := r.Int63n(1000)
 
 	// Define target parameters from the configuration file
 	target := xr.NewCiscoGrpcClient()

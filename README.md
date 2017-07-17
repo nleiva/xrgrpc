@@ -83,7 +83,9 @@ examples/showcmd$ ./showcmd -cli "show isis database" -enc json
 $
 ```
 
-### CLI config
+### Configuring the router
+
+- CLI config (Merge)
 
 Apply cli commands to the device/router
 
@@ -92,7 +94,37 @@ examples/setconfig$ ./setconfig -cli "interface Lo11 ipv6 address 2001:db8::/128
 Config Applied
 ```
 
-## XR Config
+On the router:
+
+```
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run interface lo11
+Mon Jul 17 11:33:28.065 EDT
+interface Loopback11
+ ipv6 address 2001:db8::/128
+!
+```
+
+- JSON (Merge)
+
+Apply YANG/JSON formatted config to the device/router. It reads the info in [yangconfig.json](examples/input/yangconfig.json).
+
+```bash
+examples/mergeconfig$ ./mergeconfig 
+Config Applied -> Request ID: 163, Response ID: 163
+```
+
+On the router:
+
+```
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run interface lo201
+Mon Jul 17 15:06:22.521 EDT
+interface Loopback201
+ description New Loopback 201
+ ipv6 address 2001:db8:20::1/128
+!
+```
+
+## XR gRPC Config
 
 The following is the configuration requiered on the IOS XR device in order to enable gRPC dial-in.
 
@@ -137,9 +169,6 @@ The Go generated code in [ems_grpc.pb.go](proto/ems_grpc.pb.go) is the result of
 $ protoc --go_out=plugins=grpc:. ems_grpc.proto
 ```
 
-## Compiling the Go client example
+## Compiling the Examples
 
-You simply execute `go build`. Pre-compiled binaries for GOARCH="amd64" are also part of the repo.
-
-- MAC OS X (GOOS=darwin): [xrgrpc](xrgrpc)
-- Windows (GOOS=windows): [xrgrpc.exe](xrgrpc.exe)
+Simply execute `go build` on each folder.

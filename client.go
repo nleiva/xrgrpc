@@ -111,7 +111,6 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 }
 
 // ShowCmdJSONOutput returns the output of a CLI show commands as a JSON structure output.
-// A lot of code duplication (from ShowCmdTextOutput). Will improve this.
 func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCExecClient(conn)
@@ -142,7 +141,6 @@ func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 }
 
 // GetConfig returns the config for a specif YANG path elments descibed in 'js'.
-// A lot of code duplication (from ShowCmdTextOutput). Will improve this.
 func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -189,7 +187,7 @@ func CLIConfig(conn *grpc.ClientConn, cli string, id int64) error {
 		si := strconv.FormatInt(id, 10)
 		return errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
 	}
-	return nil
+	return err
 }
 
 // CommitConfig commits the config submitted with id 'id'.
@@ -212,5 +210,26 @@ func CommitConfig(conn *grpc.ClientConn, id int64) (s string, err error) {
 		return s, errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
 	}
 	// What about r.ResReqId?. Is it equal to ReqId?
-	return r.Result.String(), nil
+	return r.Result.String(), err
+}
+
+// MergeConfig configs the target with YANG/JSON cconfig descibed in 'js'.
+func MergeConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ConfigArgs{ReqId: id, Yangjson: js}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.MergeConfig(context.Background(), &a)
+	if err != nil {
+		return i, errors.Wrap(err, "gRPC MergeConfig failed")
+	}
+	if len(r.Errors) != 0 {
+		si := strconv.FormatInt(id, 10)
+		ri := strconv.FormatInt(r.ResReqId, 10)
+		return i, errors.New("Error triggered by remote host for ReqId: " + si + "/" + ri + ": " + r.Errors)
+	}
+	return r.ResReqId, nil
 }

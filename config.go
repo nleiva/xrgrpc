@@ -9,10 +9,10 @@ import (
 	"os"
 )
 
-// decodeJsonConfig marshalls the file into the object v
+// DecodeJSONConfig marshalls the file into the object v
 // XR self-signed certificates are issued for CN=ems.cisco.com
-func DecodeJSONConfig(v interface{}, filename string) error {
-	file, err := os.Open(filename)
+func DecodeJSONConfig(v interface{}, f string) error {
+	file, err := os.Open(f)
 	if err != nil {
 		return err
 	}

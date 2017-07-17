@@ -1,0 +1,48 @@
+{
+ "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": {
+  "interface-configuration": [
+   {
+    "active": "act",
+    "interface-name": "Loopback201",
+    "interface-virtual": [
+     null
+    ],
+    "description": "New Loopback 201",
+    "Cisco-IOS-XR-ipv6-ma-cfg:ipv6-network": {
+     "addresses": {
+      "regular-addresses": {
+       "regular-address": [
+        {
+         "address": "2001:db8:20::1",
+         "prefix-length": 128,
+         "zone": 0
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "active": "act",
+    "interface-name": "Loopback301",
+    "interface-virtual": [
+     null
+    ],
+    "description": "New Loopback 301",
+    "Cisco-IOS-XR-ipv6-ma-cfg:ipv6-network": {
+     "addresses": {
+      "regular-addresses": {
+       "regular-address": [
+        {
+         "address": "2001:db8:30::1",
+         "prefix-length": 128,
+         "zone": 0
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ }
+}
