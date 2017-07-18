@@ -43,12 +43,12 @@ func main() {
 	// Get config for the YANG paths specified on 'js'
 	js, err := ioutil.ReadFile(*ypath)
 	if err != nil {
-		fmt.Printf("Could not read file: %v: %v\n", *ypath, err)
+		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
 	}
 	output, err = xr.GetConfig(conn, string(js), id)
 	// output, err = xr.CLIConfig(conn, "show run bgp", id)
 	if err != nil {
-		fmt.Printf("Could not get the config: %v\n", err)
+		log.Fatalf("Could not get the config: %v\n", err)
 	}
 	fmt.Println(output)
 

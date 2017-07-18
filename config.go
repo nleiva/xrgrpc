@@ -6,15 +6,16 @@ package xrgrpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
-// DecodeJSONConfig marshalls the file into the object v
+// DecodeJSONConfig marshalls the file into the object v.
 // XR self-signed certificates are issued for CN=ems.cisco.com
 func DecodeJSONConfig(v interface{}, f string) error {
 	file, err := os.Open(f)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not open the file: %s; %v", f, err)
 	}
 	return json.NewDecoder(file).Decode(v)
 }

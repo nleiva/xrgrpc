@@ -42,7 +42,7 @@ func main() {
 	// Apply 'cli' config to target
 	err = xr.CLIConfig(conn, *cli, id)
 	if err != nil {
-		fmt.Printf("Failed to config the device: %v\n", err)
+		log.Fatalf("Failed to config the device: %v\n", err)
 	} else {
 		fmt.Println("Config Applied")
 	}

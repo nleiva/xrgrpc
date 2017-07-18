@@ -42,13 +42,13 @@ func main() {
 	// Get YANG config file to delete
 	js, err := ioutil.ReadFile(*ypath)
 	if err != nil {
-		fmt.Printf("Could not read file: %v: %v\n", *ypath, err)
+		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
 	}
 
 	// Delete 'js' config on target
 	ri, err := xr.DeleteConfig(conn, string(js), id)
 	if err != nil {
-		fmt.Printf("Failed to delete config from the device: %v\n", err)
+		log.Fatalf("Failed to delete config from the device: %v\n", err)
 	} else {
 		fmt.Printf("Config Deleted -> Request ID: %v, Response ID: %v\n", id, ri)
 	}

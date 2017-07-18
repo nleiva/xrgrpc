@@ -5,6 +5,7 @@ gRPC Client library
 package xrgrpc
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -31,9 +32,8 @@ func NewCiscoGrpcClient() *CiscoGrpcClient {
 	return new(CiscoGrpcClient)
 }
 
-// Provides the user/password for the connection.
-// It implements the PerRPCCredentials interface.
-// https://godoc.org/google.golang.org/grpc/credentials#PerRPCCredentials.
+// Provides the user/password for the connection. It implements
+// the PerRPCCredentials interface.
 type loginCreds struct {
 	Username, Password string
 }
@@ -102,7 +102,7 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
+			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Output) > 0 {
 			s += r.Output
@@ -110,7 +110,8 @@ func ShowCmdTextOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 	}
 }
 
-// ShowCmdJSONOutput returns the output of a CLI show commands as a JSON structure output.
+// ShowCmdJSONOutput returns the output of a CLI show commands
+// as a JSON structure output.
 func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCExecClient(conn)
@@ -132,7 +133,7 @@ func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
+			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Jsonoutput) > 0 {
 			s += r.Jsonoutput
@@ -140,7 +141,8 @@ func ShowCmdJSONOutput(conn *grpc.ClientConn, cli string, id int64) (s string, e
 	}
 }
 
-// GetConfig returns the config for a specif YANG path elments descibed in 'js'.
+// GetConfig returns the config for a specif YANG path elments
+// descibed in 'js'.
 func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -162,7 +164,7 @@ func GetConfig(conn *grpc.ClientConn, js string, id int64) (s string, err error)
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
+			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Yangjson) > 0 {
 			s += r.Yangjson
@@ -185,7 +187,7 @@ func CLIConfig(conn *grpc.ClientConn, cli string, id int64) error {
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
+		return fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return err
 }
@@ -207,7 +209,7 @@ func CommitConfig(conn *grpc.ClientConn, id int64) (s string, err error) {
 		return s, errors.Wrap(err, "gRPC CommitConfig failed")
 	}
 	if len(r.Errors) != 0 {
-		return s, errors.New("Error triggered by remote host for ReqId: " + si + ": " + r.Errors)
+		return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	// What about r.ResReqId. Seems to equal to id sent.
 	return r.Result.String(), err
@@ -228,12 +230,13 @@ func MergeConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return i, errors.New("Error triggered by remote host for ReqId " + si + ": " + r.Errors)
+		return i, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
 
-// DeleteConfig removes the config config specified in 'js' on the target device.
+// DeleteConfig removes the config config specified in 'js'
+// on the target device.
 func DeleteConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -248,12 +251,13 @@ func DeleteConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err erro
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return i, errors.New("Error triggered by remote host for ReqId " + si + ": " + r.Errors)
+		return i, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
 
-// ReplaceConfig replaces the config specified in 'js' on the target device.
+// ReplaceConfig replaces the config specified in 'js' on
+// the target device.
 func ReplaceConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -268,7 +272,7 @@ func ReplaceConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err err
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return i, errors.New("Error triggered by remote host for ReqId " + si + ": " + r.Errors)
+		return i, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }

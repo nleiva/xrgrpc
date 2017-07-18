@@ -56,10 +56,10 @@ func main() {
 	case "json":
 		output, err = xr.ShowCmdJSONOutput(conn, *cli, id)
 	default:
-		fmt.Printf("Don't recognize encoding: %v\n", *enc)
+		log.Fatalf("Don't recognize encoding: %v\n", *enc)
 	}
 	if err != nil {
-		fmt.Printf("Couldn't get the cli output: %v\n", err)
+		log.Fatalf("Couldn't get the cli output: %v\n", err)
 	}
 	fmt.Println(output)
 }
