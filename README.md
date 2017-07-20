@@ -238,12 +238,22 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 
 ## Compiling the proto file
 
-The Go generated code in [ems_grpc.pb.go](proto/ems_grpc.pb.go) is the result of the following:
+The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
 
 ```bash
-$ protoc --go_out=plugins=grpc:. ems_grpc.proto
+proto/ems/$ protoc --go_out=plugins=grpc:. ems_grpc.proto
+```
+
+The Go generated code in [lldp_neighbor.pb.go](proto/telemetry/lldp/lldp_neighbor.pb.go) is the result of the following:
+
+```bash
+proto/telemetry/lldp$ protoc --go_out=. lldp_neighbor.proto 
 ```
 
 ## Compiling the Examples
 
-Simply execute `go build` on each folder.
+Simply execute `go build` on the corresponding example folder. E.g.
+
+```bash
+examples/telemetry$ go build
+```
