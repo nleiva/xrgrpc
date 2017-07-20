@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	pb "github.com/nleiva/xrgrpc/proto"
+	pb "github.com/nleiva/xrgrpc/proto/ems"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -275,4 +275,46 @@ func ReplaceConfig(conn *grpc.ClientConn, js string, id int64) (i int64, err err
 		return i, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
+}
+
+// GetSubscription -> Telemetry Generator Pattern
+func GetSubscription(conn *grpc.ClientConn, p string, id int64, e int64) (chan []byte, error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+	// 'b' is the bytes channel where Telemetry is received
+	b := make(chan []byte)
+	// 'a' is the object we send to the router via the stub.
+	a := pb.CreateSubsArgs{ReqId: id, Encode: e, Subidstr: p}
+	ctx := context.Background()
+	// 'r' is the result that comes back from the target.
+	st, err := c.CreateSubs(ctx, &a)
+	if err != nil {
+		return b, errors.Wrap(err, "gRPC CreateSubs failed")
+	}
+
+	// REVIEW the logic and make sure we release the resources
+	go func() {
+		for {
+			// Loop through the responses in the stream until there is nothing left.
+			r, err := st.Recv()
+			if err == io.EOF {
+				close(b)
+				break
+			}
+			if len(r.Errors) != 0 {
+				si := strconv.FormatInt(id, 10)
+				err = fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+				close(b)
+				break
+			}
+			select {
+			case <-ctx.Done():
+				close(b)
+				break
+			case b <- r.GetData():
+				continue
+			}
+		}
+	}()
+	return b, err
 }
