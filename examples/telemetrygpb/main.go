@@ -18,6 +18,8 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
+	lldp "github.com/nleiva/xrgrpc/proto/telemetry/lldp"
+	"github.com/pkg/errors"
 )
 
 func prettyprint(b []byte) ([]byte, error) {
@@ -29,8 +31,8 @@ func prettyprint(b []byte) ([]byte, error) {
 func main() {
 	// Subs options; LLDP, we will add some more
 	p := flag.String("subs", "LLDP", "Telemetry Subscription")
-	// Encoding option; defaults to GPBKV (only one supported in this example)
-	enc := flag.String("enc", "gpbkv", "Encoding: 'json', 'gpb' or 'gpbkv'")
+	// Encoding option; defaults to GPB (only one supported in this example)
+	enc := flag.String("enc", "gpb", "Encoding: 'json', 'gpb' or 'gpbkv'")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 
@@ -87,14 +89,41 @@ func main() {
 		}
 		fmt.Printf("Time %v, Path: %v\n", message.GetMsgTimestamp(), message.GetEncodingPath())
 
-		b, err := json.Marshal(message)
-		if err != nil {
-			log.Fatalf("Could not marshall into JSON: %v\n", err)
+		for _, row := range message.GetDataGpb().GetRow() {
+			// From GPB we have row.GetTimestamp(), row.GetKeys() and row.GetContent()
+			// fmt.Printf("Keys %v\n", )
+			keys := new(lldp.LldpNeighbor_KEYS)
+			output, err := decodeKeys(row.GetKeys(), keys)
+			if err != nil {
+				log.Fatalf("Could decode Keys: %v\n", err)
+			}
+			fmt.Println(output)
+			content := row.GetContent()
+			nbrs := new(lldp.LldpNeighbor)
+			err = proto.Unmarshal(content, nbrs)
+
+			for _, nei := range nbrs.LldpNeighbor {
+				n := nei.GetDetail()
+				a := n.GetNetworkAddresses().GetLldpAddrEntry()[0].Address.GetIpv6Address()
+				fmt.Printf("Type: %s, Address %s \n\n", n.GetSystemDescription(), a)
+			}
 		}
-		bjs, err := prettyprint(b)
-		if err != nil {
-			log.Fatalf("Could not pretty-print the message: %v\n", err)
-		}
-		fmt.Println(string(bjs))
 	}
+}
+
+func decodeKeys(bk []byte, k *lldp.LldpNeighbor_KEYS) (string, error) {
+	err := proto.Unmarshal(bk, k)
+	s := ""
+	if err != nil {
+		return s, errors.Wrap(err, "Could not unmarshall the message keys")
+	}
+	b, err := json.Marshal(k)
+	if err != nil {
+		return s, errors.Wrap(err, "Could not marshall into JSON")
+	}
+	b, err = prettyprint(b)
+	if err != nil {
+		return s, errors.Wrap(err, "Could not pretty-print the message")
+	}
+	return string(b), err
 }
