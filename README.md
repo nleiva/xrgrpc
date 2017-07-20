@@ -167,6 +167,37 @@ no interface Loopback301
 end
 ```
 
+### Telemetry
+
+Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded, we will add an example encoded with GPB.
+
+```bash
+examples/telemetry$ ./telemetry -subs "LLDP"
+Time 1500576676957, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+{
+  "NodeId": {
+    "NodeIdStr": "mrstn-5502-1.cisco.com"
+  },
+  "Subscription": {
+    "SubscriptionIdStr": "LLDP"
+  },
+  "encoding_path": "Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail",
+  "collection_id": 117,
+  "collection_start_time": 1500576676957,
+  "msg_timestamp": 1500576676957,
+  "collection_end_time": 1500576676968
+}
+...
+```
+
+The Subscription ID has to exist on the device.
+
+```
+telemetry model-driven
+ sensor-group LLDP
+  sensor-path Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+ !
+```
 
 ## XR gRPC Config
 

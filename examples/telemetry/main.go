@@ -34,18 +34,21 @@ func prettyprint(b []byte) ([]byte, error) {
 func main() {
 	// To time this process
 	defer timeTrack(time.Now())
-
-	// Encoding option; defaults to JSON
-	// enc := flag.String("enc", "json", "Encoding: 'json' or 'text'")
+	// Subs options; LLDP, will add more
+	p := flag.String("subs", "LLDP", "Telemetry Subscription")
+	// Encoding option; defaults to GPBKV (only one supported in this example)
+	// GPB = 2, GPBKV = 3, JSON  = 4
+	enc := flag.String("enc", "gpbkv", "Encoding: 'json', 'gpb' or 'gpbkv'")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 
 	flag.Parse()
-
-	// GPB = 2, GPBKV = 3, JSON  = 4
-	var e int64 = 3
-	// Subs
-	p := "LLDP"
+	mape := map[string]int64{
+		"gpb":   2,
+		"gpbkv": 3,
+		"json":  4,
+	}
+	e := mape[*enc]
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(1000)
@@ -64,7 +67,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	ch, err := xr.GetSubscription(conn, p, id, e)
+	ch, err := xr.GetSubscription(conn, *p, id, e)
 	if err != nil {
 		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
 	}
@@ -75,8 +78,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
-		close(ch)
-		fmt.Println("Closed the Channel")
+		fmt.Println("Exit the example")
 		// panic("Show me the stack")
 		os.Exit(0)
 	}()

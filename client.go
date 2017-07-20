@@ -292,10 +292,9 @@ func GetSubscription(conn *grpc.ClientConn, p string, id int64, e int64) (chan [
 		return b, errors.Wrap(err, "gRPC CreateSubs failed")
 	}
 
-	// REVIEW the logic and make sure we release the resources
+	// REVIEW the logic and make sure we release any resource
 	go func() {
 		for {
-			// Loop through the responses in the stream until there is nothing left.
 			r, err := st.Recv()
 			if err == io.EOF {
 				close(b)
