@@ -274,7 +274,7 @@ telemetry model-driven
 
 - **GPB**
 
-Subscribe to a Telemetry stream. In this example the content is encoded using protobuf. To decode the message we need to look at the definition for LLDP neighbor details in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify de output to ilustrate how to access to each field on it.
+Again, we subscribe to a Telemetry stream but we request the content is encoded with [protobuf](https://developers.google.com/protocol-buffers/). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify the output to ilustrate how to access to each field on it.
 
 ```bash
 examples/telemetrygpb$ ./telemetrygpb -subs "LLDP"
