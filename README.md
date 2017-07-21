@@ -4,7 +4,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 ## Usage
 
-CLI examples to use the library are provided in the [examples](examples/) folder. The CLI specified is not definitive and will most likely change as we go.
+CLI examples to use the library are provided in the [examples](examples/) folder. The CLI specified in the examples is not definitive and might change as we go.
 
 ### Get Config
 
@@ -183,9 +183,9 @@ no interface Loopback301
 end
 ```
 
-- **CLI config multiple routers simultaneously** (Merge)
+### **CLI config multiple routers simultaneously** (Merge)
 
-Applies CLI config commands to the list of routers specified on [config.json](examples/input/config.json).
+Applies CLI config commands to the list of routers specified on [config.json](examples/input/config.json). Notice that even though we added two devices, the execution time did NOT increase. This is possible because of the use of [Golang Concurrency](https://blog.golang.org/pipelines) primitives.
 
 ```bash
 examples/setconfiglist$ ./setconfiglist -cli "interface Lo33 ipv6 address 2001:db8:33::1/128"
