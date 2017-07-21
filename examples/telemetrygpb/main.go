@@ -51,16 +51,16 @@ func main() {
 	id := r.Int63n(1000)
 
 	// Define target parameters from the configuration file
-	target := xr.NewCiscoGrpcClient()
-	err := xr.DecodeJSONConfig(target, *cfg)
+	targets := xr.NewDevices()
+	err := xr.DecodeJSONConfig(targets, *cfg)
 	if err != nil {
-		log.Fatalf("Could not read the config: %v", err)
+		log.Fatalf("Could not read the config: %v\n", err)
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(*target)
+	conn, err := xr.Connect(targets.Routers[0])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to the target: %v", err)
+		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
 	defer conn.Close()
 
@@ -91,7 +91,6 @@ func main() {
 
 		for _, row := range message.GetDataGpb().GetRow() {
 			// From GPB we have row.GetTimestamp(), row.GetKeys() and row.GetContent()
-			// fmt.Printf("Keys %v\n", )
 			keys := new(lldp.LldpNeighbor_KEYS)
 			output, err := decodeKeys(row.GetKeys(), keys)
 			if err != nil {

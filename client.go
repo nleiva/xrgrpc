@@ -27,9 +27,14 @@ type CiscoGrpcClient struct {
 	Timeout  int
 }
 
-// NewCiscoGrpcClient is a CiscoGrpcClient constructor
-func NewCiscoGrpcClient() *CiscoGrpcClient {
-	return new(CiscoGrpcClient)
+// Devices identifies a list of gRPC targets
+type Devices struct {
+	Routers []CiscoGrpcClient
+}
+
+// NewDevices is a Devices constructor
+func NewDevices() *Devices {
+	return new(Devices)
 }
 
 // Provides the user/password for the connection. It implements

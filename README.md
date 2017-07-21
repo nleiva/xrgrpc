@@ -8,10 +8,12 @@ CLI examples to use the library are provided in the [examples](examples/) folder
 
 ### Get Config
 
-Retrieves the config from the target device described in [config.json](examples/input/config.json) for the YANG paths specified in [yangpaths.json](examples/input/yangpaths.json)
+Retrieves the config from one target device described in [config.json](examples/input/config.json), for the YANG paths specified in [yangpaths.json](examples/input/yangpaths.json)
 
 ```bash
 examples/getconfig$ ./getconfig
+
+Config from [2001:420:2cff:1204::5502:1]:57344
 {
  "data": {
   "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": {
@@ -27,44 +29,43 @@ examples/getconfig$ ./getconfig
        "regular-addresses": {
         "regular-address": [
 ...
+2017/07/21 15:11:47 This process took 1.195469855s
 ```
 
 ### Show Commands
 
-Provides the output of IOS XR cli commands on the router defined in [config.json](examples/input/config.json). Two output format options are available; Unstructured text and JSON encoded:
+Provides the output of IOS XR cli commands for one router defined in [config.json](examples/input/config.json). Two output format options are available; Unstructured text and JSON encoded:
 
 - **Clear text**
 
 ```bash
 examples/showcmd$ ./showcmd -cli "show isis database" -enc text
 
+Output from [2001:420:2cff:1204::5502:1]:57344
+ 
 ----------------------------- show isis database ------------------------------
 
 IS-IS BB2 (Level-2) Link State Database
 LSPID                 LSP Seq Num  LSP Checksum  LSP Holdtime  ATT/P/OL
-mrstn-5502-1.cisco.com.00-00* 0x0000000b   0x9c44        1395            0/0/0
-mrstn-5502-2.cisco.com.00-00  0x0000000c   0x863f        1564            0/0/0
+mrstn-5502-1.cisco.com.00-00* 0x0000000c   0x1558        3066            0/0/0
+mrstn-5502-2.cisco.com.00-00  0x00000012   0x6e0c        3066            0/0/0
+mrstn-5501-1.cisco.com.00-00  0x0000000c   0x65d5        1150            0/0/0
 
- Total Level-2 LSP count: 2     Local Level-2 LSP count: 1
+ Total Level-2 LSP count: 3     Local Level-2 LSP count: 1
 
-$
+
+2017/07/21 15:37:00 This process took 2.480039252s
 ```
 
 - **JSON**
 
 ```bash
 examples/showcmd$ ./showcmd -cli "show isis database" -enc json
-[{
+
+Config from [2001:420:2cff:1204::5502:1]:57344
+ [{
  "Cisco-IOS-XR-clns-isis-oper:isis": {
 <snip>
-{
- "Cisco-IOS-XR-clns-isis-oper:isis": {
-  "instances": {
-   "instance": [
-    {
-     "instance-name": "BB2",
-     "host-names": {
-      "host-name": [
        {
         "system-id": "0151.0250.0002",
         "local-is-flag": false,
@@ -72,33 +73,39 @@ examples/showcmd$ ./showcmd -cli "show isis database" -enc json
         "host-name": "mrstn-5502-2.cisco.com"
        },
        {
+        "system-id": "0151.0250.0003",
+        "local-is-flag": false,
+        "host-levels": "isis-levels-2",
+        "host-name": "mrstn-5501-1.cisco.com"
+       },
+       {
         "system-id": "0151.0250.0001",
         "local-is-flag": true,
         "host-levels": "isis-levels-2",
         "host-name": "mrstn-5502-1.cisco.com"
-       }
-      ]
-     }
 ...
-$
+2017/07/21 15:37:27 This process took 1.54038192s
 ```
 
 ### Configuring the router
 
 - **CLI config** (Merge)
 
-Applies CLI config commands on the device/router.
+Applies CLI config commands on the device/router from the list in [config.json](examples/input/config.json).
 
 ```bash
 examples/setconfig$ ./setconfig -cli "interface Lo11 ipv6 address 2001:db8::/128"
-Config Applied
+
+Config applied to [2001:420:2cff:1204::5502:1]:57344
+
+2017/07/21 15:24:17 This process took 1.779449886s
 ```
 
-On the router:
+You can verify the config on the router:
 
 ```
 RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run interface lo11
-Mon Jul 17 11:33:28.065 EDT
+Fri Jul 21 15:24:24.199 EDT
 interface Loopback11
  ipv6 address 2001:db8::/128
 !
@@ -106,18 +113,21 @@ interface Loopback11
 
 - **JSON** (Merge)
 
-Applies YANG/JSON formatted config to the device/router (merges with existing config). It reads the target from [yangconfig.json](examples/input/yangconfig.json). The 
+Applies YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](examples/input/config.json). It reads the target from [yangconfig.json](examples/input/yangconfig.json). The 
 
 ```bash
 examples/mergeconfig$ ./mergeconfig 
-Config Applied -> Request ID: 163, Response ID: 163
+
+Config merged on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 8162, Response ID: 8162
+
+2017/07/21 15:18:07 This process took 1.531427437s
 ```
 
-On the router:
+You can verify the config on the router:
 
 ```
 RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run interface lo201
-Mon Jul 17 15:06:22.521 EDT
+Fri Jul 21 15:18:24.046 EDT
 interface Loopback201
  description New Loopback 201
  ipv6 address 2001:db8:20::1/128
@@ -126,18 +136,21 @@ interface Loopback201
 
 - **JSON** (Replace)
 
-Applies YANG/JSON formatted config to the device/router (replaces the config for this section). It reads the info from [yangconfigrep.json](examples/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
+Applies YANG/JSON formatted config to one device/router (replaces the config for this section) fro the list in [config.json](examples/input/config.json). It learns the config to replace from [yangconfigrep.json](examples/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
 
 ```bash
 examples/replaceconfig$ ./replaceconfig 
-Config Replaced -> Request ID: 543, Response ID: 543
+
+Config replaced on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 4616, Response ID: 4616
+
+2017/07/21 15:21:27 This process took 1.623047025s
 ```
 
-On the router:
+You can verify the config on the router:
 
 ```
-RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run int lo201
-Mon Jul 17 17:06:13.376 EDT
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show run interface lo201
+Fri Jul 21 15:21:48.053 EDT
 interface Loopback201
  description New Loopback 221
  ipv6 address 2001:db8:22::2/128
@@ -148,11 +161,14 @@ interface Loopback201
 
 - **JSON**
 
-Removes YANG/JSON formatted config on the device/router. It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json). The follwowing example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](examples/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](examples/input/yangdelintdesc.json) for only the description of the interface.
+Removes YANG/JSON formatted config on one device/router from [config.json](examples/input/config.json). It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json). The follwowing example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](examples/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](examples/input/yangdelintdesc.json) for only the description of the interface.
 
 ```bash
 examples/deleteconfig$ ./deleteconfig 
-Config Deleted -> Request ID: 236, Response ID: 236
+
+Config Deleted on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 2856, Response ID: 2856
+
+2017/07/21 15:06:46 This process took 730.329288ms
 ```
 
 On the router:
@@ -167,13 +183,63 @@ no interface Loopback301
 end
 ```
 
+- **CLI config multiple routers simultaneously** (Merge)
+
+Applies CLI config commands to the list of routers specified on [config.json](examples/input/config.json).
+
+```bash
+examples/setconfiglist$ ./setconfiglist -cli "interface Lo33 ipv6 address 2001:db8:33::1/128"
+
+Config applied to [2001:420:2cff:1204::5502:2]:57344
+
+
+
+Config applied to [2001:420:2cff:1204::5501:1]:57344
+
+
+
+Config applied to [2001:420:2cff:1204::5502:1]:57344
+
+
+2017/07/21 15:32:11 This process took 1.773893901s
+```
+
+You can verify the config on the routers:
+
+```
+RP/0/RP0/CPU0:mrstn-5501-1.cisco.com#sh run int Lo33
+Fri Jul 21 15:32:35.468 EDT
+interface Loopback33
+ ipv6 address 2001:db8:33::1/128
+!
+```
+
+```
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#sh run int Lo33
+Fri Jul 21 15:33:07.281 EDT
+interface Loopback33
+ ipv6 address 2001:db8:33::1/128
+!
+```
+
+```
+RP/0/RP0/CPU0:mrstn-5502-2.cisco.com#sh run int Lo33
+Fri Jul 21 15:33:14.504 EDT
+interface Loopback33
+ ipv6 address 2001:db8:33::1/128
+!
+```
+
+
 ### Telemetry
 
-Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded, we will add an example encoded with GPB.
+- **JSON**
+
+Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded (GPBKV).
 
 ```bash
 examples/telemetry$ ./telemetry -subs "LLDP"
-Time 1500576676957, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+Time 1500666991103, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
 {
   "NodeId": {
     "NodeIdStr": "mrstn-5502-1.cisco.com"
@@ -182,11 +248,14 @@ Time 1500576676957, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighb
     "SubscriptionIdStr": "LLDP"
   },
   "encoding_path": "Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail",
-  "collection_id": 117,
-  "collection_start_time": 1500576676957,
-  "msg_timestamp": 1500576676957,
-  "collection_end_time": 1500576676968
-}
+  "collection_id": 1,
+  "collection_start_time": 1500666991103,
+  "msg_timestamp": 1500666991103,
+  "data_gpbkv": [
+    {
+      "timestamp": 1500666991108,
+      "ValueByType": null,
+      "fields": [
 ...
 ```
 
@@ -194,9 +263,56 @@ The Subscription ID has to exist on the device.
 
 ```
 telemetry model-driven
- sensor-group LLDP
+ sensor-group LLDPNeighbor
   sensor-path Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
  !
+ subscription LLDP
+  sensor-group-id LLDPNeighbor sample-interval 15000
+ !
+!
+```
+
+- **GPB**
+
+Subscribe to a Telemetry stream. In this example the content is encoded using protobuf. To decode the message we need to look at the definition for LLDP neighbor details in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify de output to ilustrate how to access to each field on it.
+
+```bash
+examples/telemetrygpb$ ./telemetrygpb -subs "LLDP"
+Time 1500667512299, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+{
+  "node_name": "0/RP0/CPU0",
+  "interface_name": "HundredGigE0/0/0/22",
+  "device_id": "mrstn-5502-2.cisco.com"
+}
+Type:  6.2.2.22I, NCS-5500, Address value:"2001:558:2::2"  
+
+{
+  "node_name": "0/RP0/CPU0",
+  "interface_name": "HundredGigE0/0/0/21",
+  "device_id": "mrstn-5502-2.cisco.com"
+}
+Type:  6.2.2.22I, NCS-5500, Address value:"2001:558:2::2"  
+
+{
+  "node_name": "0/RP0/CPU0",
+  "interface_name": "HundredGigE0/0/0/1",
+  "device_id": "mrstn-5502-2.cisco.com"
+}
+Type:  6.2.2.22I, NCS-5500, Address value:"2001:f00:bb::2"
+...
+```
+
+The Subscription ID has to exist on the device.
+
+```
+telemetry model-driven
+ sensor-group LLDPNeighbor
+  sensor-path Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+ !
+ subscription LLDP
+  sensor-group-id LLDPNeighbor sample-interval 15000
+ !
+!
 ```
 
 ## XR gRPC Config
@@ -236,7 +352,7 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 [xrrouter.cisco.com:/var/xr/config/grpc]$
 ```
 
-## Compiling the proto file
+## Compiling the proto files
 
 The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
 
