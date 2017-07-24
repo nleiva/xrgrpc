@@ -1,7 +1,7 @@
-/*
-gRPC Client library
-*/
-
+// Package xrgrpc is a gRPC Client library for Cisco IOS XR devices. It
+// exposes different RPC's to manage the device(s). The objective is
+// to have a single interface to retrive info from the device, apply configs
+// to it, generate telemetry streams and program the RIB/FIB.
 package xrgrpc
 
 import (
@@ -197,7 +197,7 @@ func CLIConfig(conn *grpc.ClientConn, cli string, id int64) error {
 	return err
 }
 
-// CommitConfig commits the config submitted with id 'id'.
+// CommitConfig commits a config. Need to clarify its use-case.
 func CommitConfig(conn *grpc.ClientConn, id int64) (s string, err error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
@@ -218,6 +218,27 @@ func CommitConfig(conn *grpc.ClientConn, id int64) (s string, err error) {
 	}
 	// What about r.ResReqId. Seems to equal to id sent.
 	return r.Result.String(), err
+}
+
+// DiscardConfig deletes configs with ID 'id' on the target.
+// Need to clarify its use-case.
+func DiscardConfig(conn *grpc.ClientConn, id int64) (i int64, err error) {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.DiscardChangesArgs{ReqId: id}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.ConfigDiscardChanges(context.Background(), &a)
+	if err != nil {
+		return i, errors.Wrap(err, "gRPC ConfigDiscardChanges failed")
+	}
+	if len(r.Errors) != 0 {
+		si := strconv.FormatInt(id, 10)
+		return i, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+	}
+	return r.ResReqId, nil
 }
 
 // MergeConfig configs the target with YANG/JSON config specified in 'js'.

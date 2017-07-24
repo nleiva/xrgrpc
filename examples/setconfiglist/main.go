@@ -26,7 +26,7 @@ func main() {
 
 	// CLI config to apply; defaults to "interface lo1 desc test"
 	cli := flag.String("cli", "interface lo1 desc test", "Config to apply")
-	// Config file; defaults to "config2.json"
+	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 	// YANG path arguments; defaults to "yangpaths.json"
 

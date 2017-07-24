@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc)
+
 # gRPC library for Cisco IOS XR
 
 Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for the description of the service interface and the structure of the payload messages. gRPC uses protocol buffers as the Interface Definition Language (IDL).
