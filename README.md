@@ -316,7 +316,7 @@ telemetry model-driven
  !
 !
 ```
-<a name="myfootnote1">`[1]`</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
+<a name="myfootnote1">[1]</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
 
 ## XR gRPC Config
 
