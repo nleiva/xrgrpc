@@ -57,10 +57,15 @@ func main() {
 		log.Fatalf("Could not read the config: %v\n", err)
 	}
 
-	// Setup a connection to the target
-	conn, ctx, err := xr.Connect(targets.Routers[0])
+	// Setup a connection to the target. 'd' is the index of the router
+	// in the config file.
+	d := 0
+	// Adjust timeout to increase gRPC session lifespan to be able to receive
+	// Streaming Telemetry data for a period of time.
+	targets.Routers[d].Timeout = 20
+	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
+		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
 	}
 	defer conn.Close()
 
@@ -74,8 +79,12 @@ func main() {
 	// Otherwise, just the provided signals will. E.g.: signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		<-c
-		fmt.Println("Exit the example")
+		select {
+		case <-c:
+			fmt.Printf("\nManually cancelled the session to %v\n\n", targets.Routers[d].Host)
+		case <-ctx.Done():
+			fmt.Printf("\ngRPC session timed out after %v seconds\n\n", targets.Routers[d].Timeout)
+		}
 		// panic("Show me the stack")
 		os.Exit(0)
 	}()

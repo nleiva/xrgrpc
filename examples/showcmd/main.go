@@ -42,10 +42,12 @@ func main() {
 		log.Fatalf("Could not read the config: %v\n", err)
 	}
 
-	// Setup a connection to the target
-	conn, ctx, err := xr.Connect(targets.Routers[0])
+	// Setup a connection to the target. 'd' is the index of the router
+	// in the config file
+	d := 0
+	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
+		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
 	}
 	defer conn.Close()
 
@@ -61,5 +63,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't get the cli output: %v\n", err)
 	}
-	fmt.Printf("\nOutput from %s\n %s\n", targets.Routers[0].Host, output)
+	fmt.Printf("\nOutput from %s\n %s\n", targets.Routers[d].Host, output)
 }
