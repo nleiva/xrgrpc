@@ -58,13 +58,13 @@ func main() {
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(targets.Routers[0])
+	conn, ctx, err := xr.Connect(targets.Routers[0])
 	if err != nil {
 		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
 	defer conn.Close()
 
-	ch, err := xr.GetSubscription(conn, *p, id, e)
+	ch, err := xr.GetSubscription(ctx, conn, *p, id, e)
 	if err != nil {
 		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
 	}

@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(targets.Routers[0])
+	conn, ctx, err := xr.Connect(targets.Routers[0])
 	if err != nil {
 		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
 	}
-	output, err = xr.GetConfig(conn, string(js), id)
+	output, err = xr.GetConfig(ctx, conn, string(js), id)
 	// output, err = xr.CLIConfig(conn, "show run bgp", id)
 	if err != nil {
 		log.Fatalf("Could not get the config from %s, %v", targets.Routers[0].Host, err)

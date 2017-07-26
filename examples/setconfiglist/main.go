@@ -49,7 +49,7 @@ func main() {
 		go func(d xr.CiscoGrpcClient, c string, i int64) {
 			defer wg.Done()
 			// Setup a connection to the target
-			conn, err := xr.Connect(d)
+			conn, ctx, err := xr.Connect(d)
 			if err != nil {
 				cs <- fmt.Sprintf("Could not setup a client connection to %s, %v\n", d.Host, err)
 				return
@@ -57,7 +57,7 @@ func main() {
 			defer conn.Close()
 
 			// Apply 'cli' config to target
-			err = xr.CLIConfig(conn, c, i)
+			err = xr.CLIConfig(ctx, conn, c, i)
 			if err != nil {
 				cs <- fmt.Sprintf("Failed to config %s, %v\n", d.Host, err)
 				return

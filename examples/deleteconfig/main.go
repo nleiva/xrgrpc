@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(targets.Routers[0])
+	conn, ctx, err := xr.Connect(targets.Routers[0])
 	if err != nil {
 		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
@@ -55,7 +55,7 @@ func main() {
 	}
 
 	// Delete 'js' config on target
-	ri, err := xr.DeleteConfig(conn, string(js), id)
+	ri, err := xr.DeleteConfig(ctx, conn, string(js), id)
 	if err != nil {
 		log.Fatalf("Failed to delete config from %s, %v", targets.Routers[0].Host, err)
 	} else {

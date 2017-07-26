@@ -41,14 +41,14 @@ func main() {
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(targets.Routers[0])
+	conn, ctx, err := xr.Connect(targets.Routers[0])
 	if err != nil {
 		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
 	defer conn.Close()
 
 	// Apply 'cli' config to target
-	err = xr.CLIConfig(conn, *cli, id)
+	err = xr.CLIConfig(ctx, conn, *cli, id)
 	if err != nil {
 		log.Fatalf("Failed to config %s, %v", targets.Routers[0].Host, err)
 	} else {

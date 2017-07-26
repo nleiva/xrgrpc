@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Setup a connection to the target
-	conn, err := xr.Connect(targets.Routers[0])
+	conn, ctx, err := xr.Connect(targets.Routers[0])
 	if err != nil {
 		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[0].Host, err)
 	}
@@ -52,9 +52,9 @@ func main() {
 	// Return show command output based on encoding selected
 	switch *enc {
 	case "text":
-		output, err = xr.ShowCmdTextOutput(conn, *cli, id)
+		output, err = xr.ShowCmdTextOutput(ctx, conn, *cli, id)
 	case "json":
-		output, err = xr.ShowCmdJSONOutput(conn, *cli, id)
+		output, err = xr.ShowCmdJSONOutput(ctx, conn, *cli, id)
 	default:
 		log.Fatalf("Do NOT recognize encoding: %v\n", *enc)
 	}
