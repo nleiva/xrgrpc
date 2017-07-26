@@ -14,7 +14,7 @@
   "Host": "[2001:420:2cff:1204::5502:2]:57344",
   "Creds": "../input/ems5502-2.pem",
   "Options": "ems.cisco.com",
-  "Timeout": 3
+  "Timeout": 4
  },
   {
   "User":"cisco",

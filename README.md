@@ -138,7 +138,7 @@ interface Loopback201
 
 - **JSON** (Replace)
 
-Applies YANG/JSON formatted config to one device/router (replaces the config for this section) fro the list in [config.json](examples/input/config.json). It learns the config to replace from [yangconfigrep.json](examples/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
+Applies YANG/JSON formatted config to one device/router (replaces the config for this section) from the list in [config.json](examples/input/config.json). It learns the config to replace from [yangconfigrep.json](examples/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
 
 ```bash
 examples/replaceconfig$ ./replaceconfig 
@@ -163,7 +163,7 @@ interface Loopback201
 
 - **JSON**
 
-Removes YANG/JSON formatted config on one device/router from [config.json](examples/input/config.json). It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json). The follwowing example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](examples/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](examples/input/yangdelintdesc.json) for only the description of the interface.
+Removes YANG/JSON formatted config on one device/router from [config.json](examples/input/config.json). It reads the config to delete from [yangdelconfig.json](examples/input/yangdelconfig.json). The following example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](examples/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](examples/input/yangdelintdesc.json) for only the description of the interface.
 
 ```bash
 examples/deleteconfig$ ./deleteconfig 
@@ -261,7 +261,7 @@ Time 1500666991103, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighb
 ...
 ```
 
-The Subscription ID has to exist on the device.
+The Subscription ID has to exist on the device <sup>[1](#myfootnote1)</sup>.
 
 ```
 telemetry model-driven
@@ -276,7 +276,7 @@ telemetry model-driven
 
 - **GPB**
 
-Again, we subscribe to a Telemetry stream but we request the content is encoded with [protobuf](https://developers.google.com/protocol-buffers/). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify the output to ilustrate how to access to each field on it.
+Again, we subscribe to a Telemetry stream but we request the content is encoded with [protobuf](https://developers.google.com/protocol-buffers/). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify the output to illustrate how to access to each field on it.
 
 ```bash
 examples/telemetrygpb$ ./telemetrygpb -subs "LLDP"
@@ -304,7 +304,7 @@ Type:  6.2.2.22I, NCS-5500, Address value:"2001:f00:bb::2"
 ...
 ```
 
-The Subscription ID has to exist on the device.
+The Subscription ID has to exist on the device <sup>[1](#myfootnote1)</sup>.
 
 ```
 telemetry model-driven
@@ -316,10 +316,11 @@ telemetry model-driven
  !
 !
 ```
+<a name="myfootnote1">1</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
 
 ## XR gRPC Config
 
-The following is the configuration requiered on the IOS XR device in order to enable gRPC dial-in with TLS support.
+The following is the configuration required on the IOS XR device in order to enable gRPC dial-in with TLS support.
 
 ```
 !! IOS XR Configuration version = 6.2.2
@@ -333,7 +334,7 @@ grpc
 
 ### Port range
 
-While you can select any not-used port on the device, it's recomended to chose one from the 57344-57999 range.
+While you can select any not-used port on the device, it's recommended to choose one from the 57344-57999 range.
 
 ```
 mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 56500 is outside of the range of [57344, 57999]. It will consume an additional LPTS entry.
