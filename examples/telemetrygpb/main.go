@@ -6,6 +6,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -74,14 +75,20 @@ func main() {
 		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
 	c := make(chan os.Signal, 1)
 	// If no signals are provided, all incoming signals will be relayed to c.
 	// Otherwise, just the provided signals will. E.g.: signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	signal.Notify(c, os.Interrupt)
+	defer func() {
+		signal.Stop(c)
+		cancel()
+	}()
 	go func() {
 		select {
 		case <-c:
 			fmt.Printf("\nManually cancelled the session to %v\n\n", targets.Routers[d].Host)
+			cancel()
 		case <-ctx.Done():
 			fmt.Printf("\ngRPC session timed out after %v seconds\n\n", targets.Routers[d].Timeout)
 		}
