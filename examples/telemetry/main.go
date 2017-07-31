@@ -68,12 +68,14 @@ func main() {
 	}
 	defer conn.Close()
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch, err := xr.GetSubscription(ctx, conn, *p, id, e)
 	if err != nil {
 		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
 	c := make(chan os.Signal, 1)
 	// If no signals are provided, all incoming signals will be relayed to c.
 	// Otherwise, just the provided signals will. E.g.: signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -82,20 +84,20 @@ func main() {
 		signal.Stop(c)
 		cancel()
 	}()
+
 	go func() {
 		select {
 		case <-c:
 			fmt.Printf("\nManually cancelled the session to %v\n\n", targets.Routers[d].Host)
 			cancel()
 		case <-ctx.Done():
-			fmt.Printf("\ngRPC session timed out after %v seconds\n\n", targets.Routers[d].Timeout)
+			err = ctx.Err()
+			fmt.Printf("\ngRPC session timed out after %v seconds: %v\n\n", targets.Routers[d].Timeout, err.Error())
 		}
 		// panic("Show me the stack")
-		os.Exit(0)
 	}()
 
-	for {
-		tele := <-ch
+	for tele := range ch {
 		message := new(telemetry.Telemetry)
 		err := proto.Unmarshal(tele, message)
 		if err != nil {

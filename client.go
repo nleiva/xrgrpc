@@ -323,27 +323,32 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 	if err != nil {
 		return b, errors.Wrap(err, "gRPC CreateSubs failed")
 	}
+	si := strconv.FormatInt(id, 10)
 
-	// TODO: Review the logic.
+	// TODO: Review the logic. Make sure this goroutine ends
 	go func() {
+		r, err := st.Recv()
+		if err != nil {
+			err = fmt.Errorf("Error triggered by remote host: %s", err)
+			close(b)
+			return
+		}
 		for {
-			r, err := st.Recv()
-			if err == io.EOF {
-				close(b)
-				break
-			}
-			if len(r.Errors) != 0 {
-				si := strconv.FormatInt(id, 10)
-				err = fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
-				close(b)
-				break
-			}
 			select {
 			case <-ctx.Done():
 				close(b)
-				break
+				return
 			case b <- r.GetData():
-				continue
+				r, err = st.Recv()
+				if err == io.EOF {
+					close(b)
+					return
+				}
+				if err != nil {
+					err = fmt.Errorf("%s, ReqID: %s", err, si)
+					close(b)
+					return
+				}
 			}
 		}
 	}()
