@@ -29,8 +29,8 @@ func main() {
 	cli := flag.String("cli", "show grpc status", "Command to execute")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
-
 	flag.Parse()
+	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
 	output := "Empty"

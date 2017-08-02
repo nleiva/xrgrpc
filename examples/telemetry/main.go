@@ -34,8 +34,8 @@ func main() {
 	enc := flag.String("enc", "gpbkv", "Encoding: 'json', 'gpb' or 'gpbkv'")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
-
 	flag.Parse()
+
 	mape := map[string]int64{
 		"gpb":   2,
 		"gpbkv": 3,
@@ -46,6 +46,7 @@ func main() {
 		log.Fatalf("Encoding option '%v' not supported", *enc)
 	}
 
+	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
 

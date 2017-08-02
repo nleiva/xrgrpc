@@ -7,6 +7,8 @@ package xrgrpc
 import (
 	"fmt"
 	"io"
+	"net"
+	"os"
 	"strconv"
 	"time"
 
@@ -27,14 +29,89 @@ type CiscoGrpcClient struct {
 	Timeout  int
 }
 
-// Devices identifies a list of gRPC targets
+// Devices identifies a list of gRPC targets.
 type Devices struct {
 	Routers []CiscoGrpcClient
 }
 
-// NewDevices is a Devices constructor
+// NewDevices is a Devices constructor.
 func NewDevices() *Devices {
 	return new(Devices)
+}
+
+// RouterOption is a funcion that sets one or more options for a given target.
+type RouterOption func(r *CiscoGrpcClient) error
+
+// BuildRouter is a traget constructor with options.
+func BuildRouter(opts ...RouterOption) (*CiscoGrpcClient, error) {
+	var router CiscoGrpcClient
+	for _, opt := range opts {
+		err := opt(&router)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &router, nil
+}
+
+// WithUsername sets the username for a target.
+func WithUsername(n string) RouterOption {
+	return func(r *CiscoGrpcClient) error {
+		if n != "" {
+			r.User = n
+			return nil
+		}
+		return errors.New("Invalid username")
+	}
+}
+
+// WithPassword sets the password for a target.
+func WithPassword(p string) RouterOption {
+	return func(r *CiscoGrpcClient) error {
+		if p != "" {
+			r.Password = p
+			return nil
+		}
+		return errors.New("Invalid password")
+	}
+}
+
+// WithHost sets the IP address and Port of the target.
+func WithHost(h string) RouterOption {
+	return func(r *CiscoGrpcClient) error {
+		_, err := net.ResolveTCPAddr("tcp", h)
+		if err != nil {
+			return errors.Wrap(err, "Not a valid host address/port")
+		}
+		r.Host = h
+		return nil
+	}
+}
+
+// WithTimeout sets the timeout value for the gRPC session.
+func WithTimeout(t int) RouterOption {
+	return func(r *CiscoGrpcClient) error {
+		if !(t > 0) {
+			return errors.New("Timeout must be greater than zero")
+		}
+		r.Timeout = t
+		return nil
+	}
+}
+
+// WithCreds specifies the location of the IOS XR certificate file.
+// We might rename Creds to something else. We went with this name to
+// match what ios-xr-grpc-python is using in order to provide some consistency.
+func WithCreds(f string) RouterOption {
+	return func(r *CiscoGrpcClient) error {
+		if _, err := os.Stat(f); os.IsNotExist(err) {
+			return errors.Wrap(err, "Not a valid file location")
+		}
+		r.Creds = f
+		// XR self-signed certificates are issued for CN=ems.cisco.com
+		r.Options = "ems.cisco.com"
+		return nil
+	}
 }
 
 // Provides the user/password for the connection. It implements

@@ -27,9 +27,8 @@ func main() {
 	cli := flag.String("cli", "interface lo1 desc test", "Config to apply")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
-	// YANG path arguments; defaults to "yangpaths.json"
-
 	flag.Parse()
+	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
 

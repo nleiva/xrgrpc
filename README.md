@@ -318,6 +318,21 @@ telemetry model-driven
 ```
 <a name="myfootnote1">[1]</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
 
+### Telemetry
+
+You can manually define the target without the config file [config.json](examples/input/config.json), by calling the functional options "WithValue". See the snippet below from [definetarget](examples/definetarget/main.go).
+
+```go
+	// Manually specify target parameters.
+	router, err := xr.BuildRouter(
+		xr.WithUsername("cisco"),
+		xr.WithPassword("cisco"),
+		xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
+		xr.WithCreds("../input/ems5502-2.pem"),
+		xr.WithTimeout(5),
+	)
+```
+
 ## XR gRPC Config
 
 The following is the configuration required on the IOS XR device in order to enable gRPC dial-in with TLS support.

@@ -29,8 +29,8 @@ func main() {
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 	// YANG path arguments; defaults to "yangpaths.json"
 	ypath := flag.String("ypath", "../input/yangpaths.json", "YANG path arguments")
-
 	flag.Parse()
+	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
 	output := "Empty"
