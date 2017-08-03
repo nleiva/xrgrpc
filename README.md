@@ -318,7 +318,7 @@ telemetry model-driven
 ```
 <a name="myfootnote1">[1]</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
 
-### Telemetry
+### Bypass the config file
 
 You can manually define the target without the config file [config.json](example/input/config.json), by calling the functional options "WithValue". See the snippet below from [definetarget](example/definetarget/main.go).
 
