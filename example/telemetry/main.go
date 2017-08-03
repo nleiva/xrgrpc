@@ -41,8 +41,8 @@ func main() {
 		"gpbkv": 3,
 		"json":  4,
 	}
-	e := mape[*enc]
-	if e == 0 {
+	e, ok := mape[*enc]
+	if !ok {
 		log.Fatalf("Encoding option '%v' not supported", *enc)
 	}
 
@@ -72,7 +72,7 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	ch, err := xr.GetSubscription(ctx, conn, *p, id, e)
+	ch, ech, err := xr.GetSubscription(ctx, conn, *p, id, e)
 	if err != nil {
 		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
 	}
@@ -91,11 +91,17 @@ func main() {
 		case <-c:
 			fmt.Printf("\nManually cancelled the session to %v\n\n", targets.Routers[d].Host)
 			cancel()
+			return
 		case <-ctx.Done():
+			// Timeout: "context deadline exceeded"
 			err = ctx.Err()
 			fmt.Printf("\ngRPC session timed out after %v seconds: %v\n\n", targets.Routers[d].Timeout, err.Error())
+			return
+		case err = <-ech:
+			// Session canceled: "context canceled"
+			fmt.Printf("\ngRPC session to %v failed: %v\n\n", targets.Routers[d].Host, err.Error())
+			return
 		}
-		// panic("Show me the stack")
 	}()
 
 	for tele := range ch {

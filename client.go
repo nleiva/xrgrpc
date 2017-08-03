@@ -385,29 +385,38 @@ func ReplaceConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int
 	return r.ResReqId, nil
 }
 
-// GetSubscription follows the Channel Generator Pattern, it
-// returns a channel where the Streaming Telemetry data is received
-func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id int64, e int64) (chan []byte, error) {
+// GetSubscription follows the Channel Generator Pattern, it returns
+// a []byte channel where the Streaming Telemetry data is sent/received. It
+// also propagates error messages on an error channel.
+func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id int64, enc int64) (chan []byte, chan error, error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
-	// 'b' is the bytes channel where Telemetry is received
+	// 'b' is the bytes channel where Telemetry data is sent.
 	b := make(chan []byte)
+	// 'e' is the error channel where error messages are sent.
+	e := make(chan error)
 	// 'a' is the object we send to the router via the stub.
-	a := pb.CreateSubsArgs{ReqId: id, Encode: e, Subidstr: p}
+	a := pb.CreateSubsArgs{ReqId: id, Encode: enc, Subidstr: p}
 
 	// 'r' is the result that comes back from the target.
 	st, err := c.CreateSubs(ctx, &a)
 	if err != nil {
-		return b, errors.Wrap(err, "gRPC CreateSubs failed")
+		return b, e, errors.Wrap(err, "gRPC CreateSubs failed")
 	}
 	si := strconv.FormatInt(id, 10)
 
-	// TODO: Review the logic. Make sure this goroutine ends
+	// TODO: Review the logic. Make sure this goroutine ends and propagate
+	// error messages
 	go func() {
 		r, err := st.Recv()
 		if err != nil {
-			err = fmt.Errorf("Error triggered by remote host: %s", err)
 			close(b)
+			e <- fmt.Errorf("Error triggered by remote host: %s, ReqID: %s", err, si)
+			return
+		}
+		if len(r.GetErrors()) != 0 {
+			close(b)
+			e <- fmt.Errorf("Error triggered by remote host: %s, ReqID: %s", r.GetErrors(), si)
 			return
 		}
 		for {
@@ -422,12 +431,14 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 					return
 				}
 				if err != nil {
-					err = fmt.Errorf("%s, ReqID: %s", err, si)
+					// We do not report this error for now. If sent and main does not
+					// receive it, it would hang forever.
+					// e <- fmt.Errorf("%s, ReqID: %s", err, si)
 					close(b)
 					return
 				}
 			}
 		}
 	}()
-	return b, err
+	return b, e, err
 }
