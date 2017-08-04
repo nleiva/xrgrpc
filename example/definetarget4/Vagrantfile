@@ -1,0 +1,19 @@
+Vagrant.configure(2) do |config|
+  # VM-1 (Ubuntu 16.04)
+  config.vm.define "vm-1" do |config|
+    config.vm.box = "ubuntu/xenial64"
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "vm-1"
+    config.vm.hostname = "vm-1"
+    end
+    config.vm.network :private_network, virtualbox__intnet: "link1", ip: "192.0.2.2"
+  end
+  # VM-2 (Router)
+  config.vm.define "vm-2" do |config|
+    config.vm.box =  "IOS-XRv"
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "vm-2"
+    end
+    config.vm.network :private_network, virtualbox__intnet: "link1", auto_config: false
+  end
+ end
