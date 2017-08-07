@@ -1,0 +1,7 @@
+{
+ "LocalAs": 64512,
+ "PeerAs": 65535,
+ "Description": "Test",
+ "NeighborAddress": "2001:db8:1::1",
+ "LocalAddress": "Loopback60"
+}

@@ -4,6 +4,8 @@
 
 Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for the description of the service interface and the structure of the payload messages. gRPC uses protocol buffers as the Interface Definition Language (IDL).
 
+A tutorial to create a testbed has been posted in [Programming IOS-XR with gRPC and Go](https://xrdocs.github.io/programmability/tutorials/2017-08-04-programming-ios-xr-with-grpc-and-go/).
+
 ## Usage
 
 CLI examples to use the library are provided in the [example](example/) folder. The CLI specified in the examples is not definitive and might change as we go.
@@ -12,7 +14,7 @@ CLI examples to use the library are provided in the [example](example/) folder. 
 
 Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json)
 
-```bash
+```json
 example/getconfig$ ./getconfig
 
 Config from [2001:420:2cff:1204::5502:1]:57344
@@ -61,7 +63,7 @@ mrstn-5501-1.cisco.com.00-00  0x0000000c   0x65d5        1150            0/0/0
 
 - **JSON**
 
-```bash
+```json
 example/showcmd$ ./showcmd -cli "show isis database" -enc json
 
 Config from [2001:420:2cff:1204::5502:1]:57344
@@ -115,7 +117,7 @@ interface Loopback11
 
 - **JSON** (Merge)
 
-Applies YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It reads the target from [yangconfig.json](example/input/yangconfig.json). The 
+Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It reads the target from [yangconfig.json](example/input/yangconfig.json). 
 
 ```bash
 example/mergeconfig$ ./mergeconfig 
@@ -138,7 +140,7 @@ interface Loopback201
 
 - **JSON** (Replace)
 
-Applies YANG/JSON formatted config to one device/router (replaces the config for this section) from the list in [config.json](example/input/config.json). It learns the config to replace from [yangconfigrep.json](example/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
+Applies a YANG/JSON formatted config to one device/router (replaces the config for this section) from the list in [config.json](example/input/config.json). It learns the config to replace from [yangconfigrep.json](example/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
 
 ```bash
 example/replaceconfig$ ./replaceconfig 
@@ -158,6 +160,75 @@ interface Loopback201
  ipv6 address 2001:db8:22::2/128
 !
 ```
+
+- **Using a YANG config Template** (Merge)
+
+Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template [bgptemplate.json](example/input/bgptemplate.json) based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang) in this case and the specific parameters from [bgpparam.json](example/input/bgpparam.json).
+
+See below an extract from this [bgptemplate.json](example/input/bgptemplate.json) and notice NeighborAddress, PeerASN, Description and LocalAddress are variables to be defined.
+
+```json
+"neighbor": [
+ {
+  "neighbor-address": "{{.NeighborAddress}}",
+  "remote-as": {
+   "as-xx": {{.PeerASN.X}},
+   "as-yy": {{.PeerASN.Y}}
+  },
+  "description": "{{.Description}}",
+  "update-source-interface": "{{.LocalAddress}}",
+  "neighbor-afs": {
+   "neighbor-af": [
+	{
+	 "af-name": "ipv6-unicast",
+	 "activate": [
+	  null
+	 ]
+	}
+   ]
+  }
+ }
+] 
+```
+
+Now we execute and inmediatly request the updated BGP config from the device with a subsequent RPC call.
+
+```json
+example/mergetemplate$ ./mergetemplate 
+
+Config merged on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 1866, Response ID: 1866
+
+
+Config from [2001:420:2cff:1204::5502:1]:57344
+ {
+ "Cisco-IOS-XR-ipv4-bgp-cfg:bgp": {
+  "instance": [
+<snip>
+         "bgp-entity": {
+          "neighbors": {
+           "neighbor": [
+            {
+             "neighbor-address": "2001:db8:1::1",
+             "remote-as": {
+              "as-xx": 0,
+              "as-yy": 65535
+             },
+             "description": "Test",
+             "update-source-interface": "Loopback60",
+             "neighbor-afs": {
+              "neighbor-af": [
+<snip>
+
+2017/08/07 18:52:57 This process took 907.395197ms
+```
+
+Go includes the [template](https://golang.org/pkg/html/template/) package in its standard library to generate data-driven textual outputs. Give templates and YANG a try in [The Go Playground](https://play.golang.org/p/xRsTkVfCTG).
+
+<aside class="notice">
+While templates are cool, I'd recommend exploring one of these alternatives to handle YANG models programmatically.
+- [YDK](https://developer.cisco.com/site/ydk/) that takes YANG models as input and produces APIs that mirror the structure of the models.
+- [goyang](https://github.com/openconfig/goyang) which is a YANG parser and compiler to produce Go language objects.
+</aside>
 
 ### Removing router config
 

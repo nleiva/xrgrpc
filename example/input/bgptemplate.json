@@ -1,0 +1,46 @@
+{
+  "Cisco-IOS-XR-ipv4-bgp-cfg:bgp": {
+   "instance": [
+    {
+     "instance-name": "default",
+     "instance-as": [
+      {
+       "as": {{.LocalASN.X}},
+       "four-byte-as": [
+        {
+         "as": {{.LocalASN.Y}},
+         "default-vrf": {
+          "bgp-entity": {
+           "neighbors": {
+            "neighbor": [
+             {
+              "neighbor-address": "{{.NeighborAddress}}",
+              "remote-as": {
+               "as-xx": {{.PeerASN.X}},
+               "as-yy": {{.PeerASN.Y}}
+              },
+              "description": "{{.Description}}",
+              "update-source-interface": "{{.LocalAddress}}",
+              "neighbor-afs": {
+               "neighbor-af": [
+                {
+                 "af-name": "ipv6-unicast",
+                 "activate": [
+                  null
+                 ]
+                }
+               ]
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+}

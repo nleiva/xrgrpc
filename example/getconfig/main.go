@@ -57,7 +57,6 @@ func main() {
 		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
 	}
 	output, err = xr.GetConfig(ctx, conn, string(js), id)
-	// output, err = xr.CLIConfig(conn, "show run bgp", id)
 	if err != nil {
 		log.Fatalf("Could not get the config from %s, %v", targets.Routers[d].Host, err)
 	}
