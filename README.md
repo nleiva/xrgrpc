@@ -224,11 +224,9 @@ Config from [2001:420:2cff:1204::5502:1]:57344
 
 Go includes the [template](https://golang.org/pkg/html/template/) package in its standard library to generate data-driven textual outputs. Give templates and YANG a try in [The Go Playground](https://play.golang.org/p/xRsTkVfCTG).
 
-<aside class="notice">
 While templates are cool, I'd recommend exploring one of these alternatives to handle YANG models programmatically.
 - [YDK](https://developer.cisco.com/site/ydk/) that takes YANG models as input and produces APIs that mirror the structure of the models.
 - [goyang](https://github.com/openconfig/goyang) which is a YANG parser and compiler to produce Go language objects.
-</aside>
 
 ### Removing router config
 
