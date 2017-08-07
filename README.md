@@ -14,7 +14,7 @@ CLI examples to use the library are provided in the [example](example/) folder. 
 
 Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json)
 
-```json
+```shell
 example/getconfig$ ./getconfig
 
 Config from [2001:420:2cff:1204::5502:1]:57344
@@ -63,7 +63,7 @@ mrstn-5501-1.cisco.com.00-00  0x0000000c   0x65d5        1150            0/0/0
 
 - **JSON**
 
-```json
+```shell
 example/showcmd$ ./showcmd -cli "show isis database" -enc json
 
 Config from [2001:420:2cff:1204::5502:1]:57344
@@ -167,7 +167,7 @@ Applies a YANG/JSON formatted config to one device/router (merges with existing 
 
 See below an extract from this [bgptemplate.json](example/input/bgptemplate.json) and notice NeighborAddress, PeerASN, Description and LocalAddress are variables to be defined.
 
-```json
+```shell
 "neighbor": [
  {
   "neighbor-address": "{{.NeighborAddress}}",
@@ -193,7 +193,7 @@ See below an extract from this [bgptemplate.json](example/input/bgptemplate.json
 
 Now we execute and inmediatly request the updated BGP config from the device with a subsequent RPC call.
 
-```json
+```shell
 example/mergetemplate$ ./mergetemplate 
 
 Config merged on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 1866, Response ID: 1866
