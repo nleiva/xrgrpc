@@ -1,7 +1,3 @@
-// Package xrgrpc is a gRPC Client library for Cisco IOS XR devices. It
-// exposes different RPC's to manage the device(s). The objective is
-// to have a single interface to retrive info from the device, apply configs
-// to it, generate telemetry streams and program the RIB/FIB.
 package xrgrpc
 
 import (

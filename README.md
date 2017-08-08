@@ -163,7 +163,7 @@ interface Loopback201
 
 - **Using a YANG config Template** (Merge)
 
-Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template [bgptemplate.json](example/input/bgptemplate.json) based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang) in this case and the specific parameters from [bgpparam.json](example/input/bgpparam.json).
+Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template ([bgptemplate.json](example/input/bgptemplate.json)), based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang), in this case and the specific parameters from [bgpparam.json](example/input/bgpparam.json).
 
 See below an extract from this [bgptemplate.json](example/input/bgptemplate.json) and notice NeighborAddress, PeerASN, Description and LocalAddress are variables to be defined.
 
@@ -222,7 +222,8 @@ Config from [2001:420:2cff:1204::5502:1]:57344
 2017/08/07 18:52:57 This process took 907.395197ms
 ```
 
-Go includes the [template](https://golang.org/pkg/html/template/) package in its standard library to generate data-driven textual outputs. Give templates and YANG a try in [The Go Playground](https://play.golang.org/p/xRsTkVfCTG).
+Go includes the [template](https://golang.org/pkg/html/template/) package in its standard library to generate data-driven textual outputs. 
+- Give templates and YANG a try in [The Go Playground](https://play.golang.org/p/xRsTkVfCTG).
 
 While templates are cool, I'd recommend exploring one of these alternatives to handle YANG models programmatically.
 - [YDK](https://developer.cisco.com/site/ydk/) that takes YANG models as input and produces APIs that mirror the structure of the models.
