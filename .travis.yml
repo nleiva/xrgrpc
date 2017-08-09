@@ -1,0 +1,8 @@
+language: go
+
+go:  
+- 1.8.3
+- tip # The latest version of Go
+
+script: 
+- go test -v .  # ./... includes the vendor folder.
