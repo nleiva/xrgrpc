@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc)
+[![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc)[![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc)
 
 # gRPC library for Cisco IOS XR
 
