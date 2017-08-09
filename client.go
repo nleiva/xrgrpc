@@ -57,7 +57,7 @@ func WithUsername(n string) RouterOption {
 			r.User = n
 			return nil
 		}
-		return errors.New("Invalid username")
+		return errors.New("invalid username")
 	}
 }
 
@@ -68,7 +68,7 @@ func WithPassword(p string) RouterOption {
 			r.Password = p
 			return nil
 		}
-		return errors.New("Invalid password")
+		return errors.New("invalid password")
 	}
 }
 
@@ -77,7 +77,7 @@ func WithHost(h string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		_, err := net.ResolveTCPAddr("tcp", h)
 		if err != nil {
-			return errors.Wrap(err, "Not a valid host address/port")
+			return errors.Wrap(err, "not a valid host address/port")
 		}
 		r.Host = h
 		return nil
@@ -88,7 +88,7 @@ func WithHost(h string) RouterOption {
 func WithTimeout(t int) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		if !(t > 0) {
-			return errors.New("Timeout must be greater than zero")
+			return errors.New("timeout must be greater than zero")
 		}
 		r.Timeout = t
 		return nil
@@ -101,7 +101,7 @@ func WithTimeout(t int) RouterOption {
 func WithCreds(f string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		if _, err := os.Stat(f); os.IsNotExist(err) {
-			return errors.Wrap(err, "Not a valid file location")
+			return errors.Wrap(err, "not a valid file location")
 		}
 		r.Creds = f
 		// XR self-signed certificates are issued for CN=ems.cisco.com
@@ -137,7 +137,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// creds provides the TLS credentials from the input certificate file.
 	creds, err := credentials.NewClientTLSFromFile(xr.Creds, xr.Options)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "Failed to construct TLS credentialst")
+		return nil, nil, errors.Wrap(err, "failed to construct TLS credentialst")
 	}
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
@@ -154,7 +154,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "Fail to dial to target")
+		return nil, nil, errors.Wrap(err, "fail to dial to target")
 	}
 	return conn, ctx, err
 }
@@ -182,7 +182,7 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Output) > 0 {
 			s += r.Output
@@ -214,7 +214,7 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Jsonoutput) > 0 {
 			s += r.Jsonoutput
@@ -246,7 +246,7 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 		}
 		if len(r.Errors) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 		}
 		if len(r.Yangjson) > 0 {
 			s += r.Yangjson
@@ -269,7 +269,7 @@ func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64)
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return err
 }
@@ -292,7 +292,7 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (string,
 		return s, errors.Wrap(err, "gRPC CommitConfig failed")
 	}
 	if len(r.Errors) != 0 {
-		return s, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	// What about r.ResReqId. Seems to equal to id sent.
 	return r.Result.String(), err
@@ -314,7 +314,7 @@ func DiscardConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (int64,
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
@@ -334,7 +334,7 @@ func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
@@ -355,7 +355,7 @@ func DeleteConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int6
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
@@ -376,7 +376,7 @@ func ReplaceConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int
 	}
 	if len(r.Errors) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("Error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
 	}
 	return r.ResReqId, nil
 }
@@ -407,12 +407,12 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 		r, err := st.Recv()
 		if err != nil {
 			close(b)
-			e <- fmt.Errorf("Error triggered by remote host: %s, ReqID: %s", err, si)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %s", err, si)
 			return
 		}
 		if len(r.GetErrors()) != 0 {
 			close(b)
-			e <- fmt.Errorf("Error triggered by remote host: %s, ReqID: %s", r.GetErrors(), si)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %s", r.GetErrors(), si)
 			return
 		}
 		for {

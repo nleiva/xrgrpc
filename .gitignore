@@ -1,4 +1,3 @@
 .DS_Store
 sla.go
-client_test.go
 packetcaptures/
