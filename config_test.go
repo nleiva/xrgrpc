@@ -27,7 +27,7 @@ func TestDecodeJSONConfig(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%v is not a valid target: %v", router.Host, err)
 		}
-		creds := strings.Replace(router.Creds, "..", "example", 1)
+		creds := strings.Replace(router.Cert, "..", "example", 1)
 		if _, err := os.Stat(creds); os.IsNotExist(err) {
 			t.Fatalf("%v cert file not found for %v", router.Host, err)
 		}

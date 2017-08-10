@@ -38,7 +38,7 @@ func main() {
 		xr.WithUsername("cisco"),
 		xr.WithPassword("cisco"),
 		xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
-		xr.WithCreds("../input/ems5502-2.pem"),
+		xr.WithCert("../input/ems5502-2.pem"),
 		xr.WithTimeout(5),
 	)
 	if err != nil {

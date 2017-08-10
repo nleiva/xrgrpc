@@ -38,7 +38,7 @@ func main() {
 		xr.WithUsername("vagrant"),
 		xr.WithPassword("vagrant"),
 		xr.WithHost("192.0.2.1:57344"),
-		xr.WithCreds("ems.pem"),
+		xr.WithCert("ems.pem"),
 		xr.WithTimeout(5),
 	)
 	if err != nil {

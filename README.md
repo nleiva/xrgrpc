@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc)[![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc)
+[![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc) [![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc)
 
 # gRPC library for Cisco IOS XR
 
@@ -398,7 +398,7 @@ router, err := xr.BuildRouter(
 	xr.WithUsername("cisco"),
 	xr.WithPassword("cisco"),
 	xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
-	xr.WithCreds("../input/ems5502-2.pem"),
+	xr.WithCert("../input/ems5502-2.pem"),
 	xr.WithTimeout(5),
 )
 ```

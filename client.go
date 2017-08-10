@@ -20,8 +20,8 @@ type CiscoGrpcClient struct {
 	User     string
 	Password string
 	Host     string
-	Creds    string
-	Options  string
+	Cert     string
+	Domain   string
 	Timeout  int
 }
 
@@ -98,14 +98,14 @@ func WithTimeout(t int) RouterOption {
 // WithCreds specifies the location of the IOS XR certificate file.
 // We might rename Creds to something else. We went with this name to
 // match what ios-xr-grpc-python is using in order to provide some consistency.
-func WithCreds(f string) RouterOption {
+func WithCert(f string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		if _, err := os.Stat(f); os.IsNotExist(err) {
 			return errors.Wrap(err, "not a valid file location")
 		}
-		r.Creds = f
+		r.Cert = f
 		// XR self-signed certificates are issued for CN=ems.cisco.com
-		r.Options = "ems.cisco.com"
+		r.Domain = "ems.cisco.com"
 		return nil
 	}
 }
@@ -135,15 +135,19 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	var opts []grpc.DialOption
 
 	// creds provides the TLS credentials from the input certificate file.
-	creds, err := credentials.NewClientTLSFromFile(xr.Creds, xr.Options)
+	creds, err := credentials.NewClientTLSFromFile(xr.Cert, xr.Domain)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to construct TLS credentialst")
 	}
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
 
-	// Add gRPC timeout to config options array.
-	//opts = append(opts, grpc.WithTimeout(time.Second*time.Duration(xr.Timeout)))
+	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
+	// This is valid if and only if WithBlock() is present
+	opts = append(opts, grpc.WithTimeout(time.Second*time.Duration(2)))
+	opts = append(opts, grpc.WithBlock())
+
+	// Add gRPC overall timeout to the config options array.
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
 
 	// Add user/password to config options array.
