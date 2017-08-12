@@ -1,4 +1,4 @@
-// Big TODO
+// Big TODO: current coverage: 18.5% of statements
 package xrgrpc_test
 
 import (
@@ -188,7 +188,7 @@ func TestConnect(t *testing.T) {
 			conn.Close()
 		})
 	}
-	s.GracefulStop()
+	s.Stop()
 }
 
 func TestShowCmdTextOutput(t *testing.T) {
@@ -232,7 +232,7 @@ func TestShowCmdTextOutput(t *testing.T) {
 		id++
 	}
 	conn.Close()
-	s.GracefulStop()
+	s.Stop()
 }
 
 func TestShowCmdJSONOutput(t *testing.T) {
@@ -276,5 +276,5 @@ func TestShowCmdJSONOutput(t *testing.T) {
 		id++
 	}
 	conn.Close()
-	s.GracefulStop()
+	s.Stop()
 }
