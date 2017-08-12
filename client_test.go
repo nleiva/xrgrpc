@@ -25,8 +25,11 @@ const (
 	defaultCert    = "test/cert.pem"
 	defaultKey     = "test/key.pem"
 	defaultCmd     = "show test"
+	defaultYang    = "{\"Cisco-IOS-XR-test:tree\": [null]}"
 	wrongCmd       = "show me the money"
 	wrongCmdErr    = "wrong command"
+	wrongYangErr   = "wrong YANG path"
+	wrongCreds     = "incorrect username/password"
 	defaultTimeout = 5
 )
 
@@ -68,6 +71,98 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 	return nil
 }
 
+// operConfigServer implements the GRPCConfigOperServer interface
+type operConfigServer struct{}
+
+func (s *operConfigServer) GetConfig(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetConfigServer) error {
+	if a.GetYangpathjson() != defaultYang {
+		stream.Send(&pb.ConfigGetReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongYangErr,
+		})
+		return errors.New(wrongYangErr)
+	}
+	m := map[string]string{"result": "config"}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return errors.New("could not encode the test response")
+	}
+	stream.Send(&pb.ConfigGetReply{
+		ResReqId: a.GetReqId(),
+		Yangjson: string(j),
+	})
+	return nil
+}
+
+func (s *operConfigServer) MergeConfig(ctx context.Context, a *pb.ConfigArgs) (r *pb.ConfigReply, err error) {
+	if a.GetYangjson() != defaultYang {
+		err = errors.New(wrongYangErr)
+		r = &pb.ConfigReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongYangErr,
+		}
+		return
+	}
+	r = &pb.ConfigReply{
+		ResReqId: a.GetReqId(),
+	}
+	return
+}
+
+func (s *operConfigServer) DeleteConfig(ctx context.Context, a *pb.ConfigArgs) (r *pb.ConfigReply, err error) {
+	if a.GetYangjson() != defaultYang {
+		err = errors.New(wrongYangErr)
+		r = &pb.ConfigReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongYangErr,
+		}
+		return
+	}
+	r = &pb.ConfigReply{
+		ResReqId: a.GetReqId(),
+	}
+	return
+}
+
+func (s *operConfigServer) ReplaceConfig(ctx context.Context, a *pb.ConfigArgs) (r *pb.ConfigReply, err error) {
+	if a.GetYangjson() != defaultYang {
+		err = errors.New(wrongYangErr)
+		r = &pb.ConfigReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongYangErr,
+		}
+		return
+	}
+	r = &pb.ConfigReply{
+		ResReqId: a.GetReqId(),
+	}
+	return
+}
+
+func (s *operConfigServer) CliConfig(context.Context, *pb.CliConfigArgs) (*pb.CliConfigReply, error) {
+	return nil, nil
+}
+
+func (s *operConfigServer) CommitReplace(context.Context, *pb.CommitReplaceArgs) (*pb.CommitReplaceReply, error) {
+	return nil, nil
+}
+
+func (s *operConfigServer) CommitConfig(context.Context, *pb.CommitArgs) (*pb.CommitReply, error) {
+	return nil, nil
+}
+
+func (s *operConfigServer) ConfigDiscardChanges(context.Context, *pb.DiscardChangesArgs) (*pb.DiscardChangesReply, error) {
+	return nil, nil
+}
+
+func (s *operConfigServer) GetOper(*pb.GetOperArgs, pb.GRPCConfigOper_GetOperServer) error {
+	return nil
+}
+
+func (s *operConfigServer) CreateSubs(*pb.CreateSubsArgs, pb.GRPCConfigOper_CreateSubsServer) error {
+	return nil
+}
+
 // streamInterceptor to authenticate incoming gRPC stream connections
 func streamInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	if err := authorize(stream.Context()); err != nil {
@@ -93,10 +188,8 @@ func authorize(ctx context.Context) error {
 			len(md["password"]) > 0 && md["password"][0] == defaultPass {
 			return nil
 		}
-
-		return errors.New("incorrect username/password")
+		return errors.New(wrongCreds)
 	}
-
 	return errors.New("empty metadata")
 }
 
@@ -118,8 +211,11 @@ func Server(t *testing.T, svc string) *grpc.Server {
 	switch svc {
 	case "exec":
 		pb.RegisterGRPCExecServer(s, &execServer{})
+	case "opercon":
+		pb.RegisterGRPCConfigOperServer(s, &operConfigServer{})
 	default:
 	}
+
 	go func() {
 		err := s.Serve(lis)
 		// Serve always returns a non-nil error :-(
@@ -208,10 +304,14 @@ func TestShowCmdTextOutput(t *testing.T) {
 	tt := []struct {
 		name string
 		cmd  string
+		user string
+		pass string
 		err  string
 	}{
 		{name: "local connection", cmd: defaultCmd},
 		{name: "wrong command", cmd: wrongCmd, err: wrongCmdErr},
+		// TODO Fix the StreamInterceptor to hadle wrong authentication.
+		// {name: "wrong user", cmd: defaultCmd, user: "bob", err: wrongCreds},
 	}
 	s := Server(t, "exec")
 	conn, ctx, err := xr.Connect(x)
@@ -224,9 +324,21 @@ func TestShowCmdTextOutput(t *testing.T) {
 	var id int64 = 1
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
 			_, err := xr.ShowCmdTextOutput(ctx, conn, tc.cmd, id)
 			if err != nil {
 				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
+					return
+				}
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
 					return
 				}
 				t.Fatalf("failed to get show command text output from %v", x.Host)
@@ -277,6 +389,229 @@ func TestShowCmdJSONOutput(t *testing.T) {
 					return
 				}
 				t.Fatalf("failed to get show command json output from %v", x.Host)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestGetConfig(t *testing.T) {
+
+}
+
+func TestMergeConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name string
+		conf string
+		user string
+		pass string
+		err  string
+	}{
+		// The order of these test do matter, whe change credentials
+		// on the last ones.
+		{name: "local connection", conf: defaultYang},
+		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
+		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		if err != nil {
+			t.Fatalf("could not setup a client connection to %v", x.Host)
+		}
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			if tc.pass != "" {
+				conn.Close()
+				xc := x
+				xc.Password = tc.pass
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			_, err := xr.MergeConfig(ctx, conn, tc.conf, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
+					return
+				}
+				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
+					return
+				}
+				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestDeleteConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name string
+		conf string
+		user string
+		pass string
+		err  string
+	}{
+		// The order of these test do matter, whe change credentials
+		// on the last ones.
+		{name: "local connection", conf: defaultYang},
+		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
+		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		if err != nil {
+			t.Fatalf("could not setup a client connection to %v", x.Host)
+		}
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			if tc.pass != "" {
+				conn.Close()
+				xc := x
+				xc.Password = tc.pass
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			_, err := xr.DeleteConfig(ctx, conn, tc.conf, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
+					return
+				}
+				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
+					return
+				}
+				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestReplaceConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name string
+		conf string
+		user string
+		pass string
+		err  string
+	}{
+		// The order of these test do matter, whe change credentials
+		// on the last ones.
+		{name: "local connection", conf: defaultYang},
+		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
+		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		if err != nil {
+			t.Fatalf("could not setup a client connection to %v", x.Host)
+		}
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			if tc.pass != "" {
+				conn.Close()
+				xc := x
+				xc.Password = tc.pass
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			_, err := xr.ReplaceConfig(ctx, conn, tc.conf, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
+					return
+				}
+				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
+					return
+				}
+				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
 			}
 		})
 		id++

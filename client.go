@@ -331,7 +331,7 @@ func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64
 	a := pb.ConfigArgs{ReqId: id, Yangjson: js}
 
 	// 'r' is the result that comes back from the target.
-	r, err := c.MergeConfig(context.Background(), &a)
+	r, err := c.MergeConfig(ctx, &a)
 	if err != nil {
 		return -1, errors.Wrap(err, "gRPC MergeConfig failed")
 	}
@@ -352,7 +352,7 @@ func DeleteConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int6
 	a := pb.ConfigArgs{ReqId: id, Yangjson: js}
 
 	// 'r' is the result that comes back from the target.
-	r, err := c.DeleteConfig(context.Background(), &a)
+	r, err := c.DeleteConfig(ctx, &a)
 	if err != nil {
 		return -1, errors.Wrap(err, "gRPC DeleteConfig failed")
 	}
