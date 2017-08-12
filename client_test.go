@@ -177,9 +177,9 @@ func TestConnect(t *testing.T) {
 			}
 			select {
 			case <-ctx.Done():
-				t.Fatalf("could not setup a client connection to %v in under 2 seconds", xc.Host)
-			// Just wait for 3 seconds for this local connection to be setup.
-			case <-time.After(3 * time.Second):
+				t.Fatalf("could not setup a client connection to %v in under 1.5 seconds", xc.Host)
+			// Just wait for 2.5 seconds for this local connection to be setup.
+			case <-time.After(2500 * time.Millisecond):
 				break
 			}
 			// Connection won't fail until it timeouts. It re-attempt to connect until this happens.
@@ -189,6 +189,9 @@ func TestConnect(t *testing.T) {
 		})
 	}
 	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
 }
 
 func TestShowCmdTextOutput(t *testing.T) {
@@ -233,6 +236,9 @@ func TestShowCmdTextOutput(t *testing.T) {
 	}
 	conn.Close()
 	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
 }
 
 func TestShowCmdJSONOutput(t *testing.T) {
@@ -277,4 +283,7 @@ func TestShowCmdJSONOutput(t *testing.T) {
 	}
 	conn.Close()
 	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
 }

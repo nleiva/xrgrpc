@@ -143,7 +143,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 
 	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
 	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Second*time.Duration(2)))
+	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
 	opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
