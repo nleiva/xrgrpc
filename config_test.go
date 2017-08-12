@@ -1,18 +1,19 @@
-// Big TODO
-package xrgrpc
+package xrgrpc_test
 
 import (
 	"net"
 	"os"
 	"strings"
 	"testing"
+
+	xr "github.com/nleiva/xrgrpc"
 )
 
 // We are mainly validating the target config file for now
 func TestDecodeJSONConfig(t *testing.T) {
-	targets := NewDevices()
+	targets := xr.NewDevices()
 	location := "example/input/config.json"
-	err := DecodeJSONConfig(targets, location)
+	err := xr.DecodeJSONConfig(targets, location)
 	if err != nil {
 		t.Fatalf("could not open the file: %s; %v", location, err)
 	}

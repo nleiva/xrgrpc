@@ -95,9 +95,8 @@ func WithTimeout(t int) RouterOption {
 	}
 }
 
-// WithCreds specifies the location of the IOS XR certificate file.
-// We might rename Creds to something else. We went with this name to
-// match what ios-xr-grpc-python is using in order to provide some consistency.
+// WithCert specifies the location of the IOS XR certificate file.
+// ios-xr-grpc-python refers to this as Creds.
 func WithCert(f string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		if _, err := os.Stat(f); os.IsNotExist(err) {
@@ -184,12 +183,12 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(r.Errors) != 0 {
+		if len(r.GetErrors()) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 		}
-		if len(r.Output) > 0 {
-			s += r.Output
+		if len(r.GetOutput()) > 0 {
+			s += r.GetOutput()
 		}
 	}
 }
@@ -216,12 +215,12 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(r.Errors) != 0 {
+		if len(r.GetErrors()) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 		}
-		if len(r.Jsonoutput) > 0 {
-			s += r.Jsonoutput
+		if len(r.GetJsonoutput()) > 0 {
+			s += r.GetJsonoutput()
 		}
 	}
 }
