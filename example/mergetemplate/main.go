@@ -86,7 +86,7 @@ func main() {
 		splitASN(p.PeerAs),
 	}
 
-	// 'name' is the name of the template, 'yang' the string source
+	// Read the template file
 	t, err := template.ParseFiles(*templ)
 	if err != nil {
 		log.Fatalf("Could not read the template file:  %v", err)

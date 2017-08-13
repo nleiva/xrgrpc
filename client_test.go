@@ -1,4 +1,4 @@
-// Big TODO: current coverage: 18.5% of statements
+// Big TODO: current coverage: 26.9% of statements
 package xrgrpc_test
 
 import (
@@ -422,7 +422,7 @@ func TestMergeConfig(t *testing.T) {
 		pass string
 		err  string
 	}{
-		// The order of these test do matter, whe change credentials
+		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
 		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
@@ -495,7 +495,7 @@ func TestDeleteConfig(t *testing.T) {
 		pass string
 		err  string
 	}{
-		// The order of these test do matter, whe change credentials
+		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
 		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
@@ -568,7 +568,7 @@ func TestReplaceConfig(t *testing.T) {
 		pass string
 		err  string
 	}{
-		// The order of these test do matter, whe change credentials
+		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
 		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},

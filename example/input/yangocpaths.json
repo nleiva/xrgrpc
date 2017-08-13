@@ -1,0 +1,7 @@
+{	
+    "openconfig-interfaces:interfaces": [null],
+    "openconfig-local-routing:local-routes": [null],
+    "openconfig-bgp:bgp": [null],
+    "openconfig-routing-policy:routing-policy": [null],
+    "openconfig-telemetry:telemetry-system": [null]
+}

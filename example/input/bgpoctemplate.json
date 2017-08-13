@@ -1,0 +1,31 @@
+{ "openconfig-bgp:bgp": {
+   "global": {
+    "config": {
+     "as": {{.LocalAs}}
+    }
+   },
+   "neighbors": {
+    "neighbor": [
+     {
+      "neighbor-address": "{{.NeighborAddress}}",
+      "config": {
+       "neighbor-address": "{{.NeighborAddress}}",
+       "peer-as": {{.PeerAs}},
+       "description": "{{.Description}}"
+      },
+      "afi-safis": {
+       "afi-safi": [
+        {
+         "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+         "config": {
+          "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+          "enabled": true
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+}

@@ -12,7 +12,7 @@ CLI examples to use the library are provided in the [example](example/) folder. 
 
 ### Get Config
 
-Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json)
+Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json). If you want to see it using [OpenConfig models](https://github.com/openconfig/public/tree/master/release/models), you can issue `./getconfig -ypath "../input/yangocpaths.json` instead.
 
 ```shell
 example/getconfig$ ./getconfig
@@ -401,6 +401,110 @@ router, err := xr.BuildRouter(
 	xr.WithCert("../input/ems5502-2.pem"),
 	xr.WithTimeout(5),
 )
+```
+
+### Config and Validate
+
+In order to validate the intended state of the network after a config change, we need to need to look at the associated telemetry data. In this example we will configure a BGP neighbor using a BGP config [template](https://golang.org/pkg/html/template/) based on the [OpenConfig BGP YANG model](https://github.com/openconfig/public/tree/master/release/models/bgp). See below an extract of [bgpoctemplate.json](example/input/bgpoctemplate.json).
+
+```shell
+{ "openconfig-bgp:bgp": {
+   "global": {
+    "config": {
+     "as": {{.LocalAs}}
+    }
+   },
+   "neighbors": {
+    "neighbor": [
+     {
+      "neighbor-address": "{{.NeighborAddress}}",
+      "config": {
+       "neighbor-address": "{{.NeighborAddress}}",
+       "peer-as": {{.PeerAs}},
+       "description": "{{.Description}}"
+      }
+<snip>
+```
+
+The example will run a config checklist, composed of three items as a result of independent RPC calls.
+
+1. We obtain a gRPC confirmation that config was received by the target.
+2. We make a gRPC request to get the running configuration on the target to validate the change submitted was actually applied.
+3. We subscribe to a BGP Neighbor State Telemetry stream to track the status changes.
+
+The output of the example is very basic, but ilustrates all these points. Notice we receive BGP status every 5 seconds and the neighbor goes from bgp-st-idle to bgp-st-estab.
+
+```
+example/configvalidate$ ./configvalidate 
+******************************************************************************************
+
+Config merged on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 3018, Response ID: 3018
+
+******************************************************************************************
+
+BGP Config from [2001:420:2cff:1204::5502:1]:57344
+
+
+{
+ "openconfig-bgp:bgp": {
+  "global": {
+   "config": {
+    "as": 64512,
+    "router-id": "162.151.250.1"
+   },
+   "afi-safis": {
+    "afi-safi": [
+     {
+      "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+      "config": {
+       "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+       "enabled": true
+      }
+     }
+    ]
+   }
+  },
+  "neighbors": {
+   "neighbor": [
+    {
+     "neighbor-address": "2001:db8:cafe::2",
+     "config": {
+      "neighbor-address": "2001:db8:cafe::2",
+      "peer-as": 64512,
+      "description": "iBGP session"
+     },
+     "afi-safis": {
+      "afi-safi": [
+       {
+        "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+        "config": {
+         "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
+         "enabled": true
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}
+
+******************************************************************************************
+
+Telemetry from [2001:420:2cff:1204::5502:1]:57344
+
+------------------------------------- Time 02:39:06AM -------------------------------------
+BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle 
+
+------------------------------------- Time 02:39:11AM -------------------------------------
+BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle 
+
+------------------------------------- Time 02:39:16AM -------------------------------------
+BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle 
+
+------------------------------------- Time 02:39:21AM -------------------------------------
+BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-estab
 ```
 
 ## XR gRPC Config
