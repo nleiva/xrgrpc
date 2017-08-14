@@ -13,9 +13,14 @@ mkdir /home/ubuntu/go/src
 mkdir /home/ubuntu/go/bin
 mkdir /home/ubuntu/go/pkg
 
-# setup some environment variables and write them to .profile file
+# Setup some environment variables and write them to .profile file.
 echo "export GOROOT=/usr/lib/go-1.8/" >> /home/ubuntu/.profile
 echo "export GOPATH=/home/ubuntu/go" >> /home/ubuntu/.profile
 echo "export PATH=$PATH:/usr/lib/go-1.8/bin:/home/ubuntu/go/bin" >> /home/ubuntu/.profile
 . /home/ubuntu/.profile
+
+# Get the IOS XR gRPC library
 go get github.com/nleiva/xrgrpc
+
+# Just change ownership as previous commands were executed by root.
+chown -R ubuntu:ubuntu /home/ubuntu/go/*

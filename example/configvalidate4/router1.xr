@@ -21,6 +21,6 @@ telemetry model-driven
   sensor-path Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/default-vrf/afs/af/neighbor-af-table/neighbor
  !
  subscription BGP
-  sensor-group-id BGPNeighbor sample-interval 5000
+  sensor-group-id BGPNeighbor sample-interval 2000
  !
 !
