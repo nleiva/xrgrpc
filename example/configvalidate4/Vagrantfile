@@ -1,0 +1,40 @@
+Vagrant.configure(2) do |config|
+  # VM-1 (Ubuntu 16.04)
+  config.vm.define "vm-1" do |config|
+    config.vm.box = "ubuntu/xenial64"
+    config.vm.provision "shell", path: "go.sh"
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "vm-1"
+    config.vm.hostname = "vm-1"
+    end
+    config.vm.network :private_network, virtualbox__intnet: "link1", ip: "192.0.2.1"
+  end
+  # VM-2 (Router 1)
+  config.vm.define "vm-2" do |config|
+    config.vm.box =  "IOS-XRv"
+    config.vm.provision "file", source: "router1.xr", destination: "/home/vagrant/config"
+    config.vm.provision "shell" do |s|
+        s.path =  "apply_config.sh"
+        s.args = ["/home/vagrant/config"]
+    end
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "vm-2"
+    end
+    config.vm.network :private_network, virtualbox__intnet: "link1", auto_config: false
+    config.vm.network :private_network, virtualbox__intnet: "link2", auto_config: false
+  end
+  # VM-3 (Router 2)
+  config.vm.define "vm-3" do |config|
+    config.vm.box =  "IOS-XRv"
+    config.vm.provision "file", source: "router2.xr", destination: "/home/vagrant/config"
+    config.vm.provision "shell" do |s|
+        s.path =  "apply_config.sh"
+        s.args = ["/home/vagrant/config"]
+    end
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "vm-3"
+    end
+    config.vm.network :private_network, virtualbox__intnet: "link1", auto_config: false
+    config.vm.network :private_network, virtualbox__intnet: "link2", auto_config: false
+  end
+ end

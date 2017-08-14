@@ -1,0 +1,43 @@
+{ "openconfig-bgp:bgp": {
+   "global": {
+    "config": {
+     "as": {{.LocalAs}},
+     "router-id": "{{.LocalAddress}}"
+    },
+    "afi-safis": {
+     "afi-safi": [
+      {
+       "afi-safi-name": "openconfig-bgp-types:ipv4-unicast",
+       "config": {
+        "afi-safi-name": "openconfig-bgp-types:ipv4-unicast",
+        "enabled": true
+       }
+      }
+     ]
+    }
+   },
+   "neighbors": {
+    "neighbor": [
+     {
+      "neighbor-address": "{{.NeighborAddress}}",
+      "config": {
+       "neighbor-address": "{{.NeighborAddress}}",
+       "peer-as": {{.PeerAs}},
+       "description": "{{.Description}}"
+      },
+      "afi-safis": {
+       "afi-safi": [
+        {
+         "afi-safi-name": "openconfig-bgp-types:ipv4-unicast",
+         "config": {
+          "afi-safi-name": "openconfig-bgp-types:ipv4-unicast",
+          "enabled": true
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+}

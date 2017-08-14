@@ -1,0 +1,18 @@
+!! XR configuration
+!
+hostname vm-3
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 192.0.2.3 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet0/0/0/1
+ ipv4 address 203.0.113.3 255.255.255.0
+ no shutdown
+!
+grpc
+ port 57344
+ tls
+ !
+ address-family ipv4
+!

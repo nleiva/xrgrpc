@@ -12,7 +12,7 @@ CLI examples to use the library are provided in the [example](example/) folder. 
 
 ### Get Config
 
-Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json). If you want to see it using [OpenConfig models](https://github.com/openconfig/public/tree/master/release/models), you can issue `./getconfig -ypath "../input/yangocpaths.json` instead.
+Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json). If you want to see it using [OpenConfig models](https://github.com/openconfig/public/tree/master/release/models), you can issue `./getconfig -ypath "../input/yangocpaths.json"` instead.
 
 ```shell
 example/getconfig$ ./getconfig

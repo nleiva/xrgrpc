@@ -1,0 +1,26 @@
+!! XR configuration
+!
+hostname vm-2
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 192.0.2.2 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet0/0/0/1
+ ipv4 address 203.0.113.2 255.255.255.0
+ no shutdown
+!
+grpc
+ port 57344
+ tls
+ !
+ address-family ipv4
+!
+telemetry model-driven
+ sensor-group BGPNeighbor
+  sensor-path Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/default-vrf/afs/af/neighbor-af-table/neighbor
+ !
+ subscription BGP
+  sensor-group-id BGPNeighbor sample-interval 5000
+ !
+!

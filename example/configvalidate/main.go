@@ -8,7 +8,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -19,11 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 	bgp "github.com/nleiva/xrgrpc/proto/telemetry/bgp"
-	"github.com/pkg/errors"
 )
 
 // NeighborConfig uses asplain notation for AS numbers (RFC5396)
@@ -35,18 +33,12 @@ type NeighborConfig struct {
 	LocalAddress    string
 }
 
-func prettyprint(b []byte) ([]byte, error) {
-	var out bytes.Buffer
-	err := json.Indent(&out, b, "", "  ")
-	return out.Bytes(), err
-}
-
 func main() {
 	// Variable for output formatting
 	line := strings.Repeat("*", 90)
 	sep := strings.Repeat("-", 37)
 
-	// YANG template; defaults to "bgptemplate.json"
+	// YANG template; defaults to "bgpoctemplate.json"
 	templ := flag.String("tpl", "../input/bgpoctemplate.json", "YANG path arguments")
 	flag.Parse()
 
@@ -177,21 +169,4 @@ func main() {
 
 		}
 	}
-}
-
-func decodeKeys(bk []byte, k *bgp.BgpNbrBag_KEYS) (string, error) {
-	err := proto.Unmarshal(bk, k)
-	s := ""
-	if err != nil {
-		return s, errors.Wrap(err, "Could not unmarshall the message keys")
-	}
-	b, err := json.Marshal(k)
-	if err != nil {
-		return s, errors.Wrap(err, "Could not marshall into JSON")
-	}
-	b, err = prettyprint(b)
-	if err != nil {
-		return s, errors.Wrap(err, "Could not pretty-print the message")
-	}
-	return string(b), err
 }
