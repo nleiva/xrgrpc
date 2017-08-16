@@ -278,13 +278,13 @@ func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64)
 }
 
 // CommitConfig commits a config. Need to clarify its use-case.
-func CommitConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (string, error) {
+func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id int64) (string, error) {
 	var s string
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
 	si := strconv.FormatInt(id, 10)
 	// Commit metadata
-	m := pb.CommitMsg{Label: "gRPC id: " + si, Comment: "gRPC commit id: " + si}
+	m := pb.CommitMsg{Label: cm[0], Comment: cm[1]}
 
 	// 'a' is the object we send to the router via the stub.
 	a := pb.CommitArgs{Msg: &m, ReqId: id}
@@ -303,24 +303,24 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (string,
 
 // DiscardConfig deletes configs with ID 'id' on the target.
 // Need to clarify its use-case.
-func DiscardConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (int64, error) {
-	// 'c' is the gRPC stub.
-	c := pb.NewGRPCConfigOperClient(conn)
+// func DiscardConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (int64, error) {
+// 	// 'c' is the gRPC stub.
+// 	c := pb.NewGRPCConfigOperClient(conn)
 
-	// 'a' is the object we send to the router via the stub.
-	a := pb.DiscardChangesArgs{ReqId: id}
+// 	// 'a' is the object we send to the router via the stub.
+// 	a := pb.DiscardChangesArgs{ReqId: id}
 
-	// 'r' is the result that comes back from the target.
-	r, err := c.ConfigDiscardChanges(context.Background(), &a)
-	if err != nil {
-		return -1, errors.Wrap(err, "gRPC ConfigDiscardChanges failed")
-	}
-	if len(r.Errors) != 0 {
-		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
-	}
-	return r.ResReqId, nil
-}
+// 	// 'r' is the result that comes back from the target.
+// 	r, err := c.ConfigDiscardChanges(context.Background(), &a)
+// 	if err != nil {
+// 		return -1, errors.Wrap(err, "gRPC ConfigDiscardChanges failed")
+// 	}
+// 	if len(r.Errors) != 0 {
+// 		si := strconv.FormatInt(id, 10)
+// 		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+// 	}
+// 	return r.ResReqId, nil
+// }
 
 // MergeConfig configs the target with YANG/JSON config specified in 'js'.
 func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) (int64, error) {

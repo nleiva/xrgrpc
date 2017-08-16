@@ -1,8 +1,9 @@
-// Big TODO: current coverage: 26.9% of statements
+// Big TODO: current coverage: 46.2% of statements
 package xrgrpc_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
@@ -26,10 +27,13 @@ const (
 	defaultKey     = "test/key.pem"
 	defaultCmd     = "show test"
 	defaultYang    = "{\"Cisco-IOS-XR-test:tree\": [null]}"
+	defaultSubsID  = "TEST"
 	wrongCmd       = "show me the money"
 	wrongCmdErr    = "wrong command"
 	wrongYangErr   = "wrong YANG path"
 	wrongCreds     = "incorrect username/password"
+	wrongSubsID    = "wrong Subscription ID"
+	wrongEncode    = "wrong encoding"
 	defaultTimeout = 5
 )
 
@@ -139,28 +143,119 @@ func (s *operConfigServer) ReplaceConfig(ctx context.Context, a *pb.ConfigArgs) 
 	return
 }
 
-func (s *operConfigServer) CliConfig(context.Context, *pb.CliConfigArgs) (*pb.CliConfigReply, error) {
-	return nil, nil
+func (s *operConfigServer) CliConfig(ctx context.Context, a *pb.CliConfigArgs) (r *pb.CliConfigReply, err error) {
+	if a.GetCli() != defaultCmd {
+		err = errors.New(wrongCmdErr)
+		r = &pb.CliConfigReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongCmdErr,
+		}
+		return
+	}
+	r = &pb.CliConfigReply{
+		ResReqId: a.GetReqId(),
+	}
+	return
 }
 
-func (s *operConfigServer) CommitReplace(context.Context, *pb.CommitReplaceArgs) (*pb.CommitReplaceReply, error) {
-	return nil, nil
+// CommitConfig commits a config. Need to clarify its use-case.
+func (s *operConfigServer) CommitReplace(ctx context.Context, a *pb.CommitReplaceArgs) (r *pb.CommitReplaceReply, err error) {
+	return
 }
 
-func (s *operConfigServer) CommitConfig(context.Context, *pb.CommitArgs) (*pb.CommitReply, error) {
-	return nil, nil
+// CommitConfig commits a config. Need to clarify its use-case.
+func (s *operConfigServer) CommitConfig(ctx context.Context, a *pb.CommitArgs) (r *pb.CommitReply, err error) {
+	Msg := pb.CommitMsg{Label: "test", Comment: "test"}
+	if *a.GetMsg() != Msg {
+		err = errors.New(wrongCmdErr)
+		r = &pb.CommitReply{
+			Result:   pb.CommitResult_FAIL,
+			ResReqId: a.GetReqId(),
+			Errors:   wrongCmdErr,
+		}
+		return
+	}
+	r = &pb.CommitReply{
+		ResReqId: a.GetReqId(),
+		Result:   pb.CommitResult_CHANGE,
+	}
+	return
 }
 
+// CommitConfig commits a config. Need to clarify its use-case.
 func (s *operConfigServer) ConfigDiscardChanges(context.Context, *pb.DiscardChangesArgs) (*pb.DiscardChangesReply, error) {
 	return nil, nil
 }
 
-func (s *operConfigServer) GetOper(*pb.GetOperArgs, pb.GRPCConfigOper_GetOperServer) error {
+func (s *operConfigServer) GetOper(a *pb.GetOperArgs, stream pb.GRPCConfigOper_GetOperServer) error {
+	if a.GetYangpathjson() != defaultYang {
+		stream.Send(&pb.GetOperReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongYangErr,
+		})
+		return errors.New(wrongYangErr)
+	}
+	m := map[string]string{"result": "oper"}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return errors.New("could not encode the test response")
+	}
+	stream.Send(&pb.GetOperReply{
+		ResReqId: a.GetReqId(),
+		Yangjson: string(j),
+	})
 	return nil
 }
 
-func (s *operConfigServer) CreateSubs(*pb.CreateSubsArgs, pb.GRPCConfigOper_CreateSubsServer) error {
-	return nil
+func (s *operConfigServer) CreateSubs(a *pb.CreateSubsArgs, stream pb.GRPCConfigOper_CreateSubsServer) error {
+	mape := map[int64]string{
+		2: "gpb",
+		3: "gpbkv",
+		4: "json",
+	}
+	_, ok := mape[a.GetEncode()]
+	if !ok {
+		return fmt.Errorf("%s, '%v' not supported", wrongEncode, a.GetEncode())
+	}
+	if a.GetSubidstr() != defaultSubsID {
+		stream.Send(&pb.CreateSubsReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongSubsID,
+		})
+		return errors.New(wrongSubsID)
+	}
+	m := map[string]string{"result": "oper"}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return errors.New("could not encode the test response")
+	}
+	// Telemetry fixed at 0.45 second interval for testing
+	ticker := time.NewTicker(450 * time.Millisecond)
+
+	// With this ('n') we can simulate server conection cancellation:
+	// 	n < ctx.Timeout -> Server cancells
+	// 	n > ctx.Timeout -> Client cancells
+	// Considering the only numerical inputs we have are the ID and Encoding, we will
+	// re-use the latter to Timeout the Stream
+	n := time.Duration(a.GetEncode()) * time.Second
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(n)
+		timeout <- true
+	}()
+	for {
+		select {
+		case <-ticker.C:
+			stream.Send(&pb.CreateSubsReply{
+				ResReqId: a.GetReqId(),
+				Data:     j,
+			})
+		case <-timeout:
+			ticker.Stop()
+			return nil
+
+		}
+	}
 }
 
 // streamInterceptor to authenticate incoming gRPC stream connections
@@ -316,10 +411,7 @@ func TestShowCmdTextOutput(t *testing.T) {
 	s := Server(t, "exec")
 	conn, ctx, err := xr.Connect(x)
 	if err != nil {
-		if err != nil {
-			t.Fatalf("could not setup a client connection to %v", x.Host)
-		}
-
+		t.Fatalf("could not setup a client connection to %v", x.Host)
 	}
 	var id int64 = 1
 	for _, tc := range tt {
@@ -375,10 +467,7 @@ func TestShowCmdJSONOutput(t *testing.T) {
 	s := Server(t, "exec")
 	conn, ctx, err := xr.Connect(x)
 	if err != nil {
-		if err != nil {
-			t.Fatalf("could not setup a client connection to %v", x.Host)
-		}
-
+		t.Fatalf("could not setup a client connection to %v", x.Host)
 	}
 	var id int64 = 1
 	for _, tc := range tt {
@@ -432,9 +521,7 @@ func TestMergeConfig(t *testing.T) {
 	s := Server(t, "opercon")
 	conn, ctx, err := xr.Connect(x)
 	if err != nil {
-		if err != nil {
-			t.Fatalf("could not setup a client connection to %v", x.Host)
-		}
+		t.Fatalf("could not setup a client connection to %v", x.Host)
 	}
 	var id int64 = 1
 	for _, tc := range tt {
@@ -505,9 +592,7 @@ func TestDeleteConfig(t *testing.T) {
 	s := Server(t, "opercon")
 	conn, ctx, err := xr.Connect(x)
 	if err != nil {
-		if err != nil {
-			t.Fatalf("could not setup a client connection to %v", x.Host)
-		}
+		t.Fatalf("could not setup a client connection to %v", x.Host)
 	}
 	var id int64 = 1
 	for _, tc := range tt {
@@ -578,9 +663,7 @@ func TestReplaceConfig(t *testing.T) {
 	s := Server(t, "opercon")
 	conn, ctx, err := xr.Connect(x)
 	if err != nil {
-		if err != nil {
-			t.Fatalf("could not setup a client connection to %v", x.Host)
-		}
+		t.Fatalf("could not setup a client connection to %v", x.Host)
 	}
 	var id int64 = 1
 	for _, tc := range tt {
@@ -617,6 +700,228 @@ func TestReplaceConfig(t *testing.T) {
 		id++
 	}
 	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestCLIConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name string
+		conf string
+		user string
+		pass string
+		err  string
+	}{
+		// The order of these test do matter, we change credentials
+		// on the last ones.
+		{name: "local connection", conf: defaultCmd},
+		{name: "wrong config", conf: "confreg 0x00", err: wrongCmdErr},
+		{name: "wrong user", conf: defaultCmd, user: "bob", err: wrongCreds},
+		{name: "wrong password", conf: defaultCmd, pass: "password", err: wrongCreds},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		t.Fatalf("could not setup a client connection to %v", x.Host)
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			if tc.pass != "" {
+				conn.Close()
+				xc := x
+				xc.Password = tc.pass
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			err := xr.CLIConfig(ctx, conn, tc.conf, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
+					return
+				}
+				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
+					return
+				}
+				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestCommitConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	defaultMsg := [2]string{"test", "test"}
+
+	tt := []struct {
+		name string
+		msg  [2]string
+		user string
+		pass string
+		err  string
+	}{
+		// The order of these test do matter, we change credentials
+		// on the last ones.
+		{name: "local connection", msg: defaultMsg},
+		{name: "wrong config", msg: [2]string{"unknown", "anything"}, err: wrongCmdErr},
+		{name: "wrong user", msg: defaultMsg, user: "bob", err: wrongCreds},
+		{name: "wrong password", msg: defaultMsg, pass: "password", err: wrongCreds},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		t.Fatalf("could not setup a client connection to %v", x.Host)
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.user != "" {
+				conn.Close()
+				xc := x
+				xc.User = tc.user
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			if tc.pass != "" {
+				conn.Close()
+				xc := x
+				xc.Password = tc.pass
+				conn, ctx, err = xr.Connect(xc)
+				if err != nil {
+					t.Fatalf("could not setup a client connection to %v", x.Host)
+				}
+			}
+			_, err := xr.CommitConfig(ctx, conn, tc.msg, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
+					return
+				}
+				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
+					return
+				}
+				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestGetSubscription(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		// We fixed Timeout to 3, in this case, in order to test different failure scenarios
+		Timeout: 3,
+	}
+
+	tt := []struct {
+		name string
+		subs string
+		enc  int64
+		err  string
+	}{
+		{name: "Server Timeout", subs: defaultSubsID, enc: 2},
+		{name: "Client Timeout", subs: defaultSubsID, enc: 4},
+		{name: "wrong subscription", subs: "anything", enc: 3, err: wrongSubsID},
+		{name: "wrong encoding", subs: defaultSubsID, enc: 5, err: wrongEncode},
+	}
+	s := Server(t, "opercon")
+	var id int64 = 1
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			// start := time.Now()
+			conn, ctx, err := xr.Connect(x)
+			defer conn.Close()
+			if err != nil {
+				t.Fatalf("could not setup a client connection to %v", x.Host)
+			}
+			ctx, cancel := context.WithCancel(ctx)
+			defer cancel()
+
+			ch, ech, err := xr.GetSubscription(ctx, conn, tc.subs, id, tc.enc)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongSubsID) && tc.err == wrongSubsID ||
+					strings.Contains(err.Error(), wrongEncode) && tc.err == wrongEncode {
+					return
+				}
+				t.Fatalf("could not setup Telemetry Subscription from %v: %v", x.Host, err)
+			}
+			go func() {
+				select {
+				case <-ctx.Done():
+					// Timeout: "context deadline exceeded"
+					// err = ctx.Err()
+					// fmt.Printf("\ngRPC session timed out after %v seconds: %v\n\n", time.Since(start), err.Error())
+					return
+				case err = <-ech:
+					if err.Error() == "EOF" ||
+						strings.Contains(err.Error(), wrongSubsID) && tc.err == wrongSubsID ||
+						strings.Contains(err.Error(), wrongEncode) && tc.err == wrongEncode {
+						return
+					}
+					// Session canceled: "context canceled"
+					t.Fatalf("\ngRPC session to %v failed: %v\n\n", x.Host, err.Error())
+				}
+			}()
+			i := 1
+			for tele := range ch {
+				fmt.Printf("Telemetry Message %v-%v: %s\n", tc.enc, i, string(tele))
+				i++
+			}
+			id++
+		})
+
+	}
 	s.Stop()
 	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
 	// reports 'bind: address already in use' when trying to run the next function test
