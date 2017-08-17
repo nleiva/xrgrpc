@@ -927,3 +927,46 @@ func TestGetSubscription(t *testing.T) {
 	// reports 'bind: address already in use' when trying to run the next function test
 	time.Sleep(200 * time.Millisecond)
 }
+
+func TestBuildRouter(t *testing.T) {
+	tt := []struct {
+		name    string
+		user    string
+		pass    string
+		host    string
+		cert    string
+		timeout int
+		err     string
+	}{
+		{name: "default case", user: defaultUser, pass: defaultPass, host: defaultAddr + defaultPort, cert: defaultCert, timeout: defaultTimeout},
+		{name: "wrong username", pass: defaultPass, host: defaultAddr + defaultPort, cert: defaultCert,
+			timeout: defaultTimeout, err: "invalid username"},
+		{name: "wrong password", user: defaultUser, host: defaultAddr + defaultPort, cert: defaultCert,
+			timeout: defaultTimeout, err: "invalid password"},
+		{name: "wrong host", user: defaultUser, pass: defaultPass, host: "300.1.1.1:57344", cert: defaultCert,
+			timeout: defaultTimeout, err: "not a valid host address"},
+		{name: "wrong cert file", user: defaultUser, pass: defaultPass, host: defaultAddr + defaultPort,
+			timeout: defaultTimeout, err: "not a valid file location"},
+		{name: "wrong timeout", user: defaultUser, pass: defaultPass, host: defaultAddr + defaultPort, cert: defaultCert,
+			timeout: 0, err: "timeout must be greater than zero"},
+	}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := xr.BuildRouter(
+				xr.WithUsername(tc.user),
+				xr.WithPassword(tc.pass),
+				xr.WithHost(tc.host),
+				xr.WithCert(tc.cert),
+				xr.WithTimeout(tc.timeout),
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), tc.err) {
+					return
+				}
+				t.Fatalf("Target parameters are incorrect: %s", err.Error())
+			}
+
+		})
+	}
+
+}
