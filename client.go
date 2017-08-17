@@ -225,8 +225,8 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	}
 }
 
-// GetConfig returns the config for a specif YANG path elments
-// descibed in 'js'.
+// GetConfig returns the config for specific YANG path elements
+// described in 'js'.
 func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) (string, error) {
 	var s string
 	// 'c' is the gRPC stub.
@@ -257,7 +257,7 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 	}
 }
 
-// CLIConfig configs the target with CLI commands descibed in 'cli'.
+// CLIConfig configs the target with CLI commands described in 'cli'.
 func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64) error {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
