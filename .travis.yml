@@ -5,4 +5,7 @@ go:
 - tip # The latest version of Go
 
 script: 
-- go test -v .  # ./... includes the vendor folder.
+- go test -v . -coverprofile=coverage.txt -covermode=atomic # ./... includes the vendor folder.
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -232,11 +232,11 @@ func (s *operConfigServer) CreateSubs(a *pb.CreateSubsArgs, stream pb.GRPCConfig
 	// Telemetry fixed at 0.45 second interval for testing
 	ticker := time.NewTicker(450 * time.Millisecond)
 
-	// With this ('n') we can simulate server conection cancellation:
+	// With this ('n') we can simulate server and client conenction cancellation:
 	// 	n < ctx.Timeout -> Server cancells
 	// 	n > ctx.Timeout -> Client cancells
 	// Considering the only numerical inputs we have are the ID and Encoding, we will
-	// re-use the latter to Timeout the Stream
+	// re-use the latter to timeout the stream.
 	n := time.Duration(a.GetEncode()) * time.Second
 	timeout := make(chan bool, 1)
 	go func() {
