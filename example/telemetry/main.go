@@ -43,7 +43,7 @@ func main() {
 	}
 	e, ok := mape[*enc]
 	if !ok {
-		log.Fatalf("Encoding option '%v' not supported", *enc)
+		log.Fatalf("encoding option '%v' not supported", *enc)
 	}
 
 	// Determine the ID for the transaction.
@@ -54,7 +54,7 @@ func main() {
 	targets := xr.NewDevices()
 	err := xr.DecodeJSONConfig(targets, *cfg)
 	if err != nil {
-		log.Fatalf("Could not read the config: %v\n", err)
+		log.Fatalf("could not read the config: %v\n", err)
 	}
 
 	// Setup a connection to the target. 'd' is the index of the router
@@ -65,7 +65,7 @@ func main() {
 	targets.Routers[d].Timeout = 20
 	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
 	}
 	defer conn.Close()
 
@@ -74,7 +74,7 @@ func main() {
 
 	ch, ech, err := xr.GetSubscription(ctx, conn, *p, id, e)
 	if err != nil {
-		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
+		log.Fatalf("could not setup Telemetry Subscription: %v\n", err)
 	}
 
 	c := make(chan os.Signal, 1)
@@ -89,7 +89,7 @@ func main() {
 	go func() {
 		select {
 		case <-c:
-			fmt.Printf("\nManually cancelled the session to %v\n\n", targets.Routers[d].Host)
+			fmt.Printf("\nmanually cancelled the session to %v\n\n", targets.Routers[d].Host)
 			cancel()
 			return
 		case <-ctx.Done():
@@ -108,17 +108,17 @@ func main() {
 		message := new(telemetry.Telemetry)
 		err := proto.Unmarshal(tele, message)
 		if err != nil {
-			log.Fatalf("Could not unmarshall the message: %v\n", err)
+			log.Fatalf("could not unmarshall the message: %v\n", err)
 		}
 		fmt.Printf("Time %v, Path: %v\n", message.GetMsgTimestamp(), message.GetEncodingPath())
 
 		b, err := json.Marshal(message)
 		if err != nil {
-			log.Fatalf("Could not marshall into JSON: %v\n", err)
+			log.Fatalf("could not marshall into JSON: %v\n", err)
 		}
 		bjs, err := prettyprint(b)
 		if err != nil {
-			log.Fatalf("Could not pretty-print the message: %v\n", err)
+			log.Fatalf("could not pretty-print the message: %v\n", err)
 		}
 		fmt.Println(string(bjs))
 	}

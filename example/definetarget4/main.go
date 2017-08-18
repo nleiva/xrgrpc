@@ -42,24 +42,24 @@ func main() {
 		xr.WithTimeout(5),
 	)
 	if err != nil {
-		log.Fatalf("Target parameters are incorrect: %s", err)
+		log.Fatalf("target parameters are incorrect: %s", err)
 	}
 
 	// Setup a connection to the target.
 	conn, ctx, err := xr.Connect(*router)
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", router.Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
 	}
 	defer conn.Close()
 
 	// Get config for the YANG paths specified on 'js'
 	js, err := ioutil.ReadFile(*ypath)
 	if err != nil {
-		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
+		log.Fatalf("could not read file: %v: %v\n", *ypath, err)
 	}
 	output, err = xr.GetConfig(ctx, conn, string(js), id)
 	if err != nil {
-		log.Fatalf("Could not get the config from %s, %v", router.Host, err)
+		log.Fatalf("could not get the config from %s, %v", router.Host, err)
 	}
-	fmt.Printf("\nConfig from %s\n %s\n", router.Host, output)
+	fmt.Printf("\nconfig from %s\n %s\n", router.Host, output)
 }

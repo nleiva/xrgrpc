@@ -39,7 +39,7 @@ func main() {
 	targets := xr.NewDevices()
 	err := xr.DecodeJSONConfig(targets, *cfg)
 	if err != nil {
-		log.Fatalf("Could not read the config: %v\n", err)
+		log.Fatalf("could not read the config: %v\n", err)
 	}
 
 	// Setup a connection to the target. 'd' is the index of the router
@@ -47,7 +47,7 @@ func main() {
 	d := 0
 	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
 	}
 	defer conn.Close()
 
@@ -58,10 +58,10 @@ func main() {
 	case "json":
 		output, err = xr.ShowCmdJSONOutput(ctx, conn, *cli, id)
 	default:
-		log.Fatalf("Do NOT recognize encoding: %v\n", *enc)
+		log.Fatalf("don't recognize encoding: %v\n", *enc)
 	}
 	if err != nil {
-		log.Fatalf("Couldn't get the cli output: %v\n", err)
+		log.Fatalf("couldn't get the cli output: %v\n", err)
 	}
-	fmt.Printf("\nOutput from %s\n %s\n", targets.Routers[d].Host, output)
+	fmt.Printf("\noutput from %s\n %s\n", targets.Routers[d].Host, output)
 }

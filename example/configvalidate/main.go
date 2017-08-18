@@ -55,7 +55,7 @@ func main() {
 		xr.WithTimeout(45),
 	)
 	if err != nil {
-		log.Fatalf("Target parameters are incorrect: %s", err)
+		log.Fatalf("target parameters are incorrect: %s", err)
 	}
 
 	neighbor := &NeighborConfig{
@@ -68,19 +68,19 @@ func main() {
 	// Read the template file
 	t, err := template.ParseFiles(*templ)
 	if err != nil {
-		log.Fatalf("Could not read the template file:  %v", err)
+		log.Fatalf("could not read the template file:  %v", err)
 	}
 
 	// 'buf' is an io.Writter to capture the template execution output
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, neighbor)
 	if err != nil {
-		log.Fatalf("Could not execute the template: %v", err)
+		log.Fatalf("could not execute the template: %v", err)
 	}
 
 	conn, ctx, err := xr.Connect(*router)
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", router.Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
 	}
 	defer conn.Close()
 
@@ -88,10 +88,10 @@ func main() {
 	// ri, err := xr.MergeConfig(ctx, conn, buf.String(), id)
 	ri, err := xr.MergeConfig(ctx, conn, buf.String(), id)
 	if err != nil {
-		log.Fatalf("Failed to config %s: %v\n", router.Host, err)
+		log.Fatalf("failed to config %s: %v\n", router.Host, err)
 	} else {
 		fmt.Println(line)
-		fmt.Printf("\nConfig merged on %s -> Request ID: %v, Response ID: %v\n\n", router.Host, id, ri)
+		fmt.Printf("\nconfig merged on %s -> Request ID: %v, Response ID: %v\n\n", router.Host, id, ri)
 		fmt.Println(line)
 	}
 
@@ -99,7 +99,7 @@ func main() {
 	id++
 	output, err := xr.GetConfig(ctx, conn, "{\"openconfig-bgp:bgp\": [null]}", id)
 	if err != nil {
-		log.Fatalf("Could not get the config from %s, %v", router.Host, err)
+		log.Fatalf("could not get the config from %s, %v", router.Host, err)
 	}
 	fmt.Printf("\nBGP Config from %s\n\n", router.Host)
 	fmt.Printf("\n%s\n", output)
@@ -123,13 +123,13 @@ func main() {
 	var e int64 = 2
 	ch, ech, err := xr.GetSubscription(ctx, conn, p, id, e)
 	if err != nil {
-		log.Fatalf("Could not setup Telemetry Subscription: %v\n", err)
+		log.Fatalf("could not setup Telemetry Subscription: %v\n", err)
 	}
 
 	go func() {
 		select {
 		case <-c:
-			fmt.Printf("\nManually cancelled the session to %v\n\n", router.Host)
+			fmt.Printf("\nmanually cancelled the session to %v\n\n", router.Host)
 			cancel()
 			return
 		case <-ctx.Done():
@@ -150,7 +150,7 @@ func main() {
 		message := new(telemetry.Telemetry)
 		err := proto.Unmarshal(tele, message)
 		if err != nil {
-			log.Fatalf("Could not unmarshall the message: %v\n", err)
+			log.Fatalf("could not unmarshall the message: %v\n", err)
 		}
 		ts := message.GetMsgTimestamp()
 		ts64 := int64(ts * 1000000)
@@ -160,7 +160,9 @@ func main() {
 			content := row.GetContent()
 			nbr := new(bgp.BgpNbrBag)
 			err = proto.Unmarshal(content, nbr)
-
+			if err != nil {
+				log.Fatalf("could decode Content: %v\n", err)
+			}
 			rasn := nbr.GetRemoteAs()
 			state := nbr.GetConnectionState()
 			raddr := nbr.GetConnectionRemoteAddress().Ipv6Address.GetValue()

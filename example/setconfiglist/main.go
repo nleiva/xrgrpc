@@ -37,7 +37,7 @@ func main() {
 	targets := xr.NewDevices()
 	err := xr.DecodeJSONConfig(targets, *cfg)
 	if err != nil {
-		log.Fatalf("Could not read the config: %v", err)
+		log.Fatalf("could not read the config: %v", err)
 	}
 
 	cs := make(chan string)
@@ -50,7 +50,7 @@ func main() {
 			// Setup a connection to the target
 			conn, ctx, err := xr.Connect(d)
 			if err != nil {
-				cs <- fmt.Sprintf("Could not setup a client connection to %s, %v\n", d.Host, err)
+				cs <- fmt.Sprintf("could not setup a client connection to %s, %v\n", d.Host, err)
 				return
 			}
 			defer conn.Close()
@@ -58,10 +58,10 @@ func main() {
 			// Apply 'cli' config to target
 			err = xr.CLIConfig(ctx, conn, c, i)
 			if err != nil {
-				cs <- fmt.Sprintf("Failed to config %s, %v\n", d.Host, err)
+				cs <- fmt.Sprintf("failed to config %s, %v\n", d.Host, err)
 				return
 			}
-			cs <- fmt.Sprintf("\nConfig applied to %s\n\n", d.Host)
+			cs <- fmt.Sprintf("\nconfig applied to %s\n\n", d.Host)
 			return
 
 		}(router, *cli, id)

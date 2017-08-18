@@ -38,7 +38,7 @@ func main() {
 	targets := xr.NewDevices()
 	err := xr.DecodeJSONConfig(targets, *cfg)
 	if err != nil {
-		log.Fatalf("Could not read the config: %v\n", err)
+		log.Fatalf("could not read the config: %v\n", err)
 	}
 
 	// Setup a connection to the target	// Setup a connection to the target. 'd' is the index of the router
@@ -46,21 +46,21 @@ func main() {
 	d := 0
 	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
-		log.Fatalf("Could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
 	}
 	defer conn.Close()
 
 	// Get YANG config file
 	js, err := ioutil.ReadFile(*ypath)
 	if err != nil {
-		log.Fatalf("Could not read file: %v: %v\n", *ypath, err)
+		log.Fatalf("could not read file: %v: %v\n", *ypath, err)
 	}
 
 	// Apply 'js' config to target
 	ri, err := xr.ReplaceConfig(ctx, conn, string(js), id)
 	if err != nil {
-		log.Fatalf("Failed to config %s, %v\n", targets.Routers[d].Host, err)
+		log.Fatalf("failed to config %s, %v\n", targets.Routers[d].Host, err)
 	} else {
-		fmt.Printf("\nConfig replaced on %s -> Request ID: %v, Response ID: %v\n\n", targets.Routers[d].Host, id, ri)
+		fmt.Printf("\nconfig replaced on %s -> Request ID: %v, Response ID: %v\n\n", targets.Routers[d].Host, id, ri)
 	}
 }

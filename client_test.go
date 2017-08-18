@@ -1,4 +1,4 @@
-// Big TODO: current coverage: 46.2% of statements
+// Big TODO: current coverage: 65.8% of statements
 package xrgrpc_test
 
 import (
@@ -29,11 +29,13 @@ const (
 	defaultYang    = "{\"Cisco-IOS-XR-test:tree\": [null]}"
 	defaultSubsID  = "TEST"
 	wrongCmd       = "show me the money"
-	wrongCmdErr    = "wrong command"
-	wrongYangErr   = "wrong YANG path"
+	wrongConf      = "confreg 0x00"
+	wrongYang      = "{\"Cisco-IOS-XR-fake:tree\": [null]}"
 	wrongCreds     = "incorrect username/password"
 	wrongSubsID    = "wrong Subscription ID"
 	wrongEncode    = "wrong encoding"
+	wrongCmdErr    = "wrong command"
+	wrongYangErr   = "wrong YANG path"
 	defaultTimeout = 5
 )
 
@@ -387,8 +389,6 @@ func TestConnect(t *testing.T) {
 
 func TestShowCmdTextOutput(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -447,8 +447,6 @@ func TestShowCmdTextOutput(t *testing.T) {
 
 func TestShowCmdJSONOutput(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -490,13 +488,51 @@ func TestShowCmdJSONOutput(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
 
+	tt := []struct {
+		name  string
+		paths string
+		enc   int64
+		err   string
+	}{
+		{name: "local connection", paths: defaultYang},
+		{name: "wrong paths", paths: wrongYang, err: wrongYangErr},
+	}
+	s := Server(t, "opercon")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		t.Fatalf("could not setup a client connection to %v", x.Host)
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := xr.GetConfig(ctx, conn, tc.paths, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
+					return
+				}
+				t.Fatalf("failed to get config from %v", x.Host)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
 }
 
 func TestMergeConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -514,7 +550,7 @@ func TestMergeConfig(t *testing.T) {
 		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
-		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong config", conf: wrongYang, err: wrongYangErr},
 		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
 		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
 	}
@@ -552,7 +588,7 @@ func TestMergeConfig(t *testing.T) {
 				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
 					return
 				}
-				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+				t.Fatalf("incorrect response from %v, %v", x.Host, err)
 			}
 		})
 		id++
@@ -566,8 +602,6 @@ func TestMergeConfig(t *testing.T) {
 
 func TestDeleteConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -585,7 +619,7 @@ func TestDeleteConfig(t *testing.T) {
 		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
-		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong config", conf: wrongYang, err: wrongYangErr},
 		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
 		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
 	}
@@ -623,7 +657,7 @@ func TestDeleteConfig(t *testing.T) {
 				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
 					return
 				}
-				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+				t.Fatalf("incorrect response from %v, %v", x.Host, err)
 			}
 		})
 		id++
@@ -637,8 +671,6 @@ func TestDeleteConfig(t *testing.T) {
 
 func TestReplaceConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -656,7 +688,7 @@ func TestReplaceConfig(t *testing.T) {
 		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultYang},
-		{name: "wrong config", conf: "confreg 0x00", err: wrongYangErr},
+		{name: "wrong config", conf: wrongYang, err: wrongYangErr},
 		{name: "wrong user", conf: defaultYang, user: "bob", err: wrongCreds},
 		{name: "wrong password", conf: defaultYang, pass: "password", err: wrongCreds},
 	}
@@ -694,7 +726,7 @@ func TestReplaceConfig(t *testing.T) {
 				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
 					return
 				}
-				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+				t.Fatalf("incorrect response from %v, %v", x.Host, err)
 			}
 		})
 		id++
@@ -708,8 +740,6 @@ func TestReplaceConfig(t *testing.T) {
 
 func TestCLIConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -727,7 +757,7 @@ func TestCLIConfig(t *testing.T) {
 		// The order of these test do matter, we change credentials
 		// on the last ones.
 		{name: "local connection", conf: defaultCmd},
-		{name: "wrong config", conf: "confreg 0x00", err: wrongCmdErr},
+		{name: "wrong config", conf: wrongConf, err: wrongCmdErr},
 		{name: "wrong user", conf: defaultCmd, user: "bob", err: wrongCreds},
 		{name: "wrong password", conf: defaultCmd, pass: "password", err: wrongCreds},
 	}
@@ -765,7 +795,7 @@ func TestCLIConfig(t *testing.T) {
 				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
 					return
 				}
-				t.Fatalf("Incorrect response from %v, %v", x.Host, err)
+				t.Fatalf("incorrect response from %v, %v", x.Host, err)
 			}
 		})
 		id++
@@ -779,8 +809,6 @@ func TestCLIConfig(t *testing.T) {
 
 func TestCommitConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -852,8 +880,6 @@ func TestCommitConfig(t *testing.T) {
 
 func TestGetSubscription(t *testing.T) {
 	x := xr.CiscoGrpcClient{
-		// User/Password are per RPC based, won't be checked when dialing.
-		// Cert and Key for localhost are provided in the test folder
 		User:     defaultUser,
 		Password: defaultPass,
 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
@@ -869,8 +895,8 @@ func TestGetSubscription(t *testing.T) {
 		enc  int64
 		err  string
 	}{
-		{name: "Server Timeout", subs: defaultSubsID, enc: 2},
-		{name: "Client Timeout", subs: defaultSubsID, enc: 4},
+		{name: "server timeout", subs: defaultSubsID, enc: 2},
+		{name: "client timeout", subs: defaultSubsID, enc: 4},
 		{name: "wrong subscription", subs: "anything", enc: 3, err: wrongSubsID},
 		{name: "wrong encoding", subs: defaultSubsID, enc: 5, err: wrongEncode},
 	}
