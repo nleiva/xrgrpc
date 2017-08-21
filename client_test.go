@@ -1,4 +1,4 @@
-// Big TODO: current coverage: 65.8% of statements
+// Big TODO: current coverage: 66.2% of statements
 package xrgrpc_test
 
 import (
@@ -922,7 +922,8 @@ func TestGetSubscription(t *testing.T) {
 				}
 				t.Fatalf("could not setup Telemetry Subscription from %v: %v", x.Host, err)
 			}
-			go func() {
+			// copy tc.err to avoid race condition
+			go func(e string) {
 				select {
 				case <-ctx.Done():
 					// Timeout: "context deadline exceeded"
@@ -931,14 +932,14 @@ func TestGetSubscription(t *testing.T) {
 					return
 				case err = <-ech:
 					if err.Error() == "EOF" ||
-						strings.Contains(err.Error(), wrongSubsID) && tc.err == wrongSubsID ||
-						strings.Contains(err.Error(), wrongEncode) && tc.err == wrongEncode {
+						strings.Contains(err.Error(), wrongSubsID) && e == wrongSubsID ||
+						strings.Contains(err.Error(), wrongEncode) && e == wrongEncode {
 						return
 					}
 					// Session canceled: "context canceled"
 					t.Fatalf("\ngRPC session to %v failed: %v\n\n", x.Host, err.Error())
 				}
-			}()
+			}(tc.err)
 			i := 1
 			for tele := range ch {
 				fmt.Printf("Telemetry Message %v-%v: %s\n", tc.enc, i, string(tele))

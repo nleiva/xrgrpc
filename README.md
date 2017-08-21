@@ -394,21 +394,6 @@ telemetry model-driven
 ```
 <a name="myfootnote1">[1]</a>: [gNMI](https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.proto) defines a variant where you do not need this config.
 
-### Bypass the config file
-
-You can manually define the target without the config file [config.json](example/input/config.json), by calling the functional options "WithValue". See the snippet below from [definetarget](example/definetarget/main.go).
-
-```go
-// Manually specify target parameters.
-router, err := xr.BuildRouter(
-	xr.WithUsername("cisco"),
-	xr.WithPassword("cisco"),
-	xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
-	xr.WithCert("../input/ems5502-2.pem"),
-	xr.WithTimeout(5),
-)
-```
-
 ### Config and Validate
 
 In order to validate the intended state of the network after a config change, we need to need to look at the associated telemetry data. In this example we will configure a BGP neighbor using a BGP config [template](https://golang.org/pkg/html/template/) based on the [OpenConfig BGP YANG model](https://github.com/openconfig/public/tree/master/release/models/bgp). See below an extract of [bgpoctemplate.json](example/input/bgpoctemplate.json).
@@ -511,6 +496,21 @@ BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle
 
 ------------------------------------- Time 02:39:21AM -------------------------------------
 BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-estab
+```
+
+### Bypass the config file
+
+You can manually define the target without the config file [config.json](example/input/config.json), by calling the functional options "WithValue". See the snippet below from [definetarget](example/definetarget/main.go).
+
+```go
+// Manually specify target parameters.
+router, err := xr.BuildRouter(
+	xr.WithUsername("cisco"),
+	xr.WithPassword("cisco"),
+	xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
+	xr.WithCert("../input/ems5502-2.pem"),
+	xr.WithTimeout(5),
+)
 ```
 
 ## XR gRPC Config
