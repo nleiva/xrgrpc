@@ -311,7 +311,7 @@ interface Loopback33
 
 ### Telemetry
 
-- **JSON**
+- **JSON (GPBKV)**
 
 Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded (GPBKV).
 
@@ -350,7 +350,49 @@ telemetry model-driven
 !
 ```
 
-- **GPB**
+- **JSON (GPBKV); exploring the fields**
+
+Same as the previous example. However this time we explore the fields in order to produce a custom output.
+
+```go
+func exploreFields(f []*telemetry.TelemetryField, indent string) {
+	for _, field := range f {
+		switch field.GetFields() {
+		case nil:
+			decodeKV(field, indent)
+		default:
+			exploreFields(field.GetFields(), indent+" ")
+		}
+	}
+}
+```
+
+The result looks like this:
+
+```bash
+example/telemetrykv$ ./telemetrykv
+******************************************************************************************
+Time 01:24:48PM, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+******************************************************************************************
+  node-name: 0/RP0/CPU0
+  interface-name: HundredGigE0/0/0/1
+  device-id: mrstn-5502-1.cisco.com
+   receiving-interface-name: HundredGigE0/0/0/1
+   receiving-parent-interface-name: <No interface>
+   device-id: mrstn-5502-1.cisco.com
+   chassis-id: 008a.9646.6cd8
+   port-id-detail: Hu0/0/0/1
+   header-version: 0
+   hold-time: 15
+   enabled-capabilities: R
+   platform:
+    port-description: TO calient_fiber_switch, port 001 in/out
+    system-name: mrstn-5502-1.cisco.com
+    system-description:  6.2.2.22I, NCS-5500
+<snip>    
+```
+
+- **GPB (Protobuf)**
 
 Again, we subscribe to a Telemetry stream but we request the content is encoded with [protobuf](https://developers.google.com/protocol-buffers/). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify the output to illustrate how to access to each field on it.
 
