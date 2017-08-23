@@ -60,7 +60,7 @@ func main() {
 
 	// Setup a connection to the target. 'd' is the index of the router
 	// in the config file
-	d := 1
+	d := 0
 	// Adjust timeout to increase gRPC session lifespan to be able to receive
 	// Streaming Telemetry data for a period of time.
 	targets.Routers[d].Timeout = 20
@@ -146,7 +146,10 @@ func decodeKV(f *telemetry.TelemetryField, indent string) {
 		fmt.Printf("%s%s: %v\n", indent, f.GetName(), f.GetUint64Value())
 	case *telemetry.TelemetryField_BytesValue:
 		fmt.Printf("%s%s: %v\n", indent, f.GetName(), f.GetBytesValue())
+	case *telemetry.TelemetryField_Sint32Value:
+		fmt.Printf("%s%s: %v\n", indent, f.GetName(), f.GetSint32Value())
+	case *telemetry.TelemetryField_Sint64Value:
+		fmt.Printf("%s%s: %v\n", indent, f.GetName(), f.GetSint64Value())
 	default:
-		fmt.Println("")
 	}
 }

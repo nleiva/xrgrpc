@@ -313,7 +313,7 @@ interface Loopback33
 
 - **JSON (GPBKV)**
 
-Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded (GPBKV).
+Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded (self-describing GPB).
 
 ```bash
 example/telemetry$ ./telemetry -subs "LLDP"
@@ -350,9 +350,9 @@ telemetry model-driven
 !
 ```
 
-- **JSON (GPBKV); exploring the fields**
+- **JSON (GPBKV): Exploring the fields**
 
-Same as the previous example. However this time we explore the fields in order to produce a custom output.
+Same as the previous example using a Cisco native YANG model. However this time we explore the fields in order to produce a custom output.
 
 ```go
 func exploreFields(f []*telemetry.TelemetryField, indent string) {
@@ -391,6 +391,54 @@ Time 01:24:48PM, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors
     system-description:  6.2.2.22I, NCS-5500
 <snip>    
 ```
+
+- **JSON (GPBKV): OpenConfig**
+
+Same example as before, just calling a subscription that uses an OpenConfig model instead. The result looks like this:
+
+```bash
+example/telemetrykv$ ./telemetrykv -subs "BGP-OC"
+******************************************************************************************
+Time 01:08:03PM, Path: openconfig-bgp:bgp/neighbors/neighbor/state
+******************************************************************************************
+  instance-name: default
+  neighbor-address: 2001:db8:cafe::2
+  speaker-id: 0
+  description: iBGP session
+  local-as: 64512
+  remote-as: 64512
+  has-internal-link: true
+  is-external-neighbor-not-directly-connected: false
+  messages-received: 16
+  messages-sent: 16
+  update-messages-in: 1
+  update-messages-out: 1
+  messages-queued-in: 0
+  messages-queued-out: 0
+  connection-established-time: 822
+  connection-state: bgp-st-estab
+  previous-connection-state: 2
+  connection-admin-status: 0
+  open-check-error-code: none
+   afi: ipv6
+    value: 2001:db8:cafe::1
+  is-local-address-configured: false
+<snip>    
+```
+
+The Subscription ID has to exist on the device <sup>[1](#myfootnote1)</sup>.
+
+```
+telemetry model-driven
+ sensor-group BGPNeighbor-OC
+  sensor-path openconfig-bgp:bgp/neighbors/neighbor/state
+ !
+ subscription BGP-OC
+  sensor-group-id BGPNeighbor-OC sample-interval 10000
+ !
+!
+```
+
 
 - **GPB (Protobuf)**
 
@@ -467,7 +515,7 @@ The example will run a config checklist, composed of three items as a result of 
 
 The output of the example is very basic, but ilustrates all these points. Notice we receive BGP status every 5 seconds and the neighbor goes from bgp-st-idle to bgp-st-estab.
 
-```
+```bash
 example/configvalidate$ ./configvalidate 
 ******************************************************************************************
 
