@@ -119,7 +119,7 @@ func main() {
 
 	// subscription
 	p := "BGP"
-	// encoding gpbkv
+	// encoding GPB
 	var e int64 = 2
 	ch, ech, err := xr.GetSubscription(ctx, conn, p, id, e)
 	if err != nil {

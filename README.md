@@ -12,6 +12,12 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 - [Programming IOS-XR with gRPC and Go](https://xrdocs.github.io/programmability/tutorials/2017-08-04-programming-ios-xr-with-grpc-and-go/).
 - [Validate the intent of network config changes](https://xrdocs.github.io/programmability/tutorials/2017-08-14-validate-the-intent-of-network-config-changes/).
 
+The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The foloowing is a very simple config-validate example:
+
+<p align="center">
+  <img src="https://github.com/nleiva/xrgrpc/tree/master/pictures/oc-config-validate.gif?raw=true" alt="OpenConfig Config/Validate"/>
+</p>
+
 ## Usage
 
 CLI examples to use the library are provided in the [example](example/) folder. The CLI specified in the examples is not definitive and might change as we go.
