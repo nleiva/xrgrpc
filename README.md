@@ -14,7 +14,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The foloowing is a very simple config-validate example:
 
-![oc-config-validate](https://user-images.githubusercontent.com/8928883/29680033-5969deb6-88d1-11e7-9844-19d95b6639ea.gif)
+![oc-config-validate](https://github.com/nleiva/xrgrpc/blob/gh-pages/oc-config-validateH.gif)
 
 ## Usage
 
