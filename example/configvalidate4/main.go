@@ -37,8 +37,8 @@ func main() {
 	line := strings.Repeat("*", 90)
 	sep := strings.Repeat("-", 37)
 
-	// YANG template; defaults to "bgpoctemplate4.json"
-	templ := flag.String("tpl", "../input/bgpoctemplate4.json", "YANG path arguments")
+	// YANG template; defaults to "../input/template/oc-bgpv4.json"
+	templ := flag.String("bt", "../input/template/oc-bgpv4.json", "BGP Config Template")
 	flag.Parse()
 
 	// Determine the ID for first the transaction.

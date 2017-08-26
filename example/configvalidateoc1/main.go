@@ -37,8 +37,8 @@ func main() {
 	line := strings.Repeat("*", 90)
 	sep := strings.Repeat("-", 37)
 
-	// YANG template; defaults to "bgpoctemplate.json"
-	templ := flag.String("tpl", "../input/bgpoctemplate.json", "YANG path arguments")
+	// YANG template; defaults to "../input/template/oc-bgp.json"
+	templ := flag.String("bt", "../input/template/oc-bgp.json", "BGP Config Template")
 	flag.Parse()
 
 	// Determine the ID for first the transaction.
@@ -50,7 +50,7 @@ func main() {
 		xr.WithUsername("cisco"),
 		xr.WithPassword("cisco"),
 		xr.WithHost("[2001:420:2cff:1204::5502:1]:57344"),
-		xr.WithCert("../input/ems5502-1.pem"),
+		xr.WithCert("../input/certificate/ems5502-1.pem"),
 		xr.WithTimeout(45),
 	)
 	if err != nil {

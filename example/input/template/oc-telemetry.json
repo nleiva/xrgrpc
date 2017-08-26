@@ -1,0 +1,46 @@
+{ "openconfig-telemetry:telemetry-system": {
+   "sensor-groups": {
+    "sensor-group": [
+     {
+      "sensor-group-id": "{{.SensorGroupID}}",
+      "config": {
+       "sensor-group-id": "{{.SensorGroupID}}"
+      },
+      "sensor-paths": {
+       "sensor-path": [
+        {
+         "path": "{{.Path}}",
+         "config": {
+          "path": "{{.Path}}"
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "subscriptions": {
+    "persistent": {
+     "subscription": [
+      {
+       "subscription-id": "{{.SubscriptionID}}",
+       "config": {
+        "subscription-id": "{{.SubscriptionID}}"
+       },
+       "sensor-profiles": {
+        "sensor-profile": [
+         {
+          "sensor-group": "{{.SensorGroupID}}",
+          "config": {
+           "sensor-group": "{{.SensorGroupID}}",
+           "sample-interval": {{.SampleInterval}}
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  }
+}

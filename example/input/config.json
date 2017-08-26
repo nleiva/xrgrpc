@@ -4,7 +4,7 @@
   "User":"cisco",
   "Password": "cisco",
   "Host": "[2001:420:2cff:1204::5502:1]:57344",
-  "Cert": "../input/ems5502-1.pem",
+  "Cert": "../input/certificate/ems5502-1.pem",
   "Domain": "ems.cisco.com",
   "Timeout": 4
  },
@@ -12,7 +12,7 @@
   "User":"cisco",
   "Password": "cisco",
   "Host": "[2001:420:2cff:1204::5502:2]:57344",
-  "Cert": "../input/ems5502-2.pem",
+  "Cert": "../input/certificate/ems5502-2.pem",
   "Domain": "ems.cisco.com",
   "Timeout": 4
  },
@@ -20,7 +20,7 @@
   "User":"cisco",
   "Password": "cisco",
   "Host": "[2001:420:2cff:1204::5501:1]:57344",
-  "Cert": "../input/ems5501-1.pem",
+  "Cert": "../input/certificate/ems5501-1.pem",
   "Domain": "ems.cisco.com",
   "Timeout": 5
   }

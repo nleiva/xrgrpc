@@ -54,10 +54,10 @@ func main() {
 	// To time this process
 	defer timeTrack(time.Now())
 
-	// YANG template; defaults to "bgptemplate.json"
-	templ := flag.String("tpl", "../input/bgptemplate.json", "YANG path arguments")
-	// BGP parameters; defaults to "bgpparam.json"
-	bgpparam := flag.String("prm", "../input/bgpparam.json", "YANG path arguments")
+	// YANG config template
+	templ := flag.String("bt", "../input/template/bgp.json", "BGP Config Template")
+	// BGP config parameters
+	bgpparam := flag.String("prm", "../input/template/bgp-parameters.json", "YANG path arguments")
 	// Config file; defaults to "config.json"
 	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
 	flag.Parse()

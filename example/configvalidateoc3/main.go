@@ -1,16 +1,16 @@
 /*
-Configures a BGP neighbor using a BGP OpenConfig model template.
-It immediately starts listening for BGP neighbor state from OpenConfig model.
+1. Configures a Streaming Telemetry subscription using an OpenConfig model template.
+2. Configures a BGP neighbor using an OpenConfig model template.
+3. Subscribes to the Telemetry stream to learn about BGP neighbor status.
 */
 
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"math/rand"
 	"os"
@@ -22,27 +22,10 @@ import (
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 )
 
-// Colors, just for fun.
-const (
-	blue   = "\x1b[34;1m"
-	white  = "\x1b[0m"
-	red    = "\x1b[31;1m"
-	green  = "\x1b[32;1m"
-	yellow = "\x1b[33;1m"
-)
-
-// NeighborConfig uses asplain notation for AS numbers (RFC5396)
-type NeighborConfig struct {
-	LocalAs         uint32
-	PeerAs          uint32
-	Description     string
-	NeighborAddress string
-	LocalAddress    string
-}
-
 func main() {
-	// YANG template; defaults to "../input/template/oc-bgp.json"
-	templ := flag.String("bt", "../input/template/oc-bgp.json", "BGP Config Template")
+	// OpenConfig YANG templates
+	bgpt := flag.String("bt", "../input/template/oc-bgp.json", "BGP Config Template")
+	telet := flag.String("tt", "../input/template/oc-telemetry.json", "Telemetry Config Template")
 	flag.Parse()
 
 	// Determine the ID for first the transaction.
@@ -61,6 +44,48 @@ func main() {
 		log.Fatalf("target parameters are incorrect: %s", err)
 	}
 
+	// Connect to the router
+	conn, ctx, err := xr.Connect(*router)
+	if err != nil {
+		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
+	}
+	defer conn.Close()
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	defer func() {
+		signal.Stop(c)
+		cancel()
+	}()
+
+	// Generate the Telemetry config
+	tc := new(TelemetryConfig)
+	tc.SubscriptionID = "BGP-OC"
+	tc.SensorGroupID = "BGPNeighbor-OC"
+	tc.Path = "openconfig-bgp:bgp/neighbors/neighbor/state"
+	tc.SampleInterval = 1000
+
+	teleConfig, err := templateProcess(*telet, tc)
+	if err != nil {
+		log.Fatalf("Telemetry, %s", err)
+	}
+
+	// Applly Telemetry config
+	_, err = xr.MergeConfig(ctx, conn, teleConfig, id)
+	if err != nil {
+		log.Fatalf("failed to config %s: %v\n", router.Host, err)
+	} else {
+		fmt.Printf("\n1)\nTelemetry config applied on %s (Request ID: %v)\n", router.Host, id)
+	}
+	id++
+
+	// First Pause
+	fmt.Print("Press 'Enter' to continue...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+	// Generate the BGP config
 	neighbor := &NeighborConfig{
 		LocalAs:         64512,
 		PeerAs:          64512,
@@ -68,51 +93,27 @@ func main() {
 		NeighborAddress: "2001:db8:cafe::2",
 		//NeighborAddress: "2001:f00:bb::2",
 	}
-
-	// Read the template file
-	t, err := template.ParseFiles(*templ)
+	bgpConfig, err := templateProcess(*bgpt, neighbor)
 	if err != nil {
-		log.Fatalf("could not read the template file:  %v", err)
+		log.Fatalf("BGP, %s", err)
 	}
 
-	// 'buf' is an io.Writter to capture the template execution output
-	buf := new(bytes.Buffer)
-	err = t.Execute(buf, neighbor)
-	if err != nil {
-		log.Fatalf("could not execute the template: %v", err)
-	}
-
-	conn, ctx, err := xr.Connect(*router)
-	if err != nil {
-		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
-	}
-	defer conn.Close()
-
-	// Apply the template+parameters to the target
-	_, err = xr.MergeConfig(ctx, conn, buf.String(), id)
+	// Apply the BGP template+parameters to the target
+	_, err = xr.MergeConfig(ctx, conn, bgpConfig, id)
 	if err != nil {
 		log.Fatalf("failed to config %s: %v\n", router.Host, err)
 	} else {
-		fmt.Printf("\n1)\nConfig merged on %s -> Request ID: %v\n", router.Host, id)
+		fmt.Printf("\n2)\nBGP Config applied on %s (Request ID: %v)\n", router.Host, id)
 	}
 
-	id++
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	c := make(chan os.Signal, 1)
-	// If no signals are provided, all incoming signals will be relayed to c.
-	// Otherwise, just the provided signals will. E.g.: signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	signal.Notify(c, os.Interrupt)
-	defer func() {
-		signal.Stop(c)
-		cancel()
-	}()
+	// Second Pause
+	fmt.Print("Press 'Enter' to continue...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
-	// subscription
-	p := "BGP-OC"
-	// encoding gpbkv
+	// Encoding GPBKV
 	var e int64 = 3
-	ch, ech, err := xr.GetSubscription(ctx, conn, p, id, e)
+	id++
+	ch, ech, err := xr.GetSubscription(ctx, conn, tc.SubscriptionID, id, e)
 	if err != nil {
 		log.Fatalf("could not setup Telemetry Subscription: %v\n", err)
 	}
@@ -134,7 +135,7 @@ func main() {
 			return
 		}
 	}()
-	fmt.Printf("\n2)\nTelemetry from %s ->\n\n", router.Host)
+	fmt.Printf("\n3)\nReceiving Telemetry from %s ->\n\n", router.Host)
 
 	for tele := range ch {
 		message := new(telemetry.Telemetry)
