@@ -1,0 +1,41 @@
+{ "openconfig-interfaces:interfaces": {
+   "interface": [
+    {
+     "name": "{{.Name}}",
+     "config": {
+      "name": "{{.Name}}",
+      "type": "{{.Type}}",
+      "enabled": {{.Enabled}},
+      "description": "{{.Description}}",
+      "mtu": {{.MTU}}
+     },
+     "openconfig-if-ethernet:ethernet": {
+      "config": {
+       "auto-negotiate": {{.AutoNegotiate}}
+      }
+     },
+     "subinterfaces": {
+      "subinterface": [
+       {
+        "index": {{.Index}},
+        "openconfig-if-ip:ipv6": {
+         "addresses": {
+          "address": [
+           {
+            "ip": "{{.Address}}",
+            "config": {
+             "ip": "{{.Address}}",
+             "prefix-length": {{.PrefixLength}}
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+}
+  

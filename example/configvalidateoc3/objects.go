@@ -53,6 +53,66 @@ type TelemetryConfig struct {
 	Subscription
 }
 
+/*
+Borrowing some definitions from:
+
+- openconfig-interfaces:
+ https://github.com/openconfig/public/blob/master/release/models/interfaces/openconfig-interfaces.yang
+
+- openconfig-if-ethernet:
+https://github.com/openconfig/public/blob/master/release/models/interfaces/openconfig-if-ethernet.yang
+
+- openconfig-if-ip:
+https://github.com/openconfig/public/blob/master/release/models/interfaces/openconfig-if-ip.yang
+
+- A YANG Data Model for Interface Management (RFC 7223): https://tools.ietf.org/html/rfc7223
+
+- Definitions of Managed Objects for the Ethernet-like Interface Types (RFC 3635):
+https://tools.ietf.org/html/rfc3635
+
+TODO: Take a look at:
+https://github.com/openconfig/ygot#validating-the-struct-contents
+*/
+
+// InterfaceConfig represents the configuration of a physical interfaces
+// and subinterfaces.
+// At present, ethernet-like media are identified by the value ethernetCsmacd(6) of the ifType
+// object in the Interfaces MIB [RFC2863]
+type InterfaceConfig struct {
+	Name        string
+	Description string
+	Enabled     bool
+	Physical
+	Ethernet
+	SubInterface
+}
+
+// Physical defines configuration data for physical interfaces.
+type Physical struct {
+	Type string
+	MTU  uint16
+}
+
+// Ethernet defines configuration items for Ethernet interfaces.
+type Ethernet struct {
+	MACAddress    string
+	AutoNegotiate bool
+	DuplexMode    string
+	PortSpeed     string
+}
+
+// SubInterface defines data for logical interfaces associated with a given interface.
+type SubInterface struct {
+	Index uint32
+	IPv6
+}
+
+// IPv6 defines configuration and state for IPv6 interfaces.
+type IPv6 struct {
+	Address      string
+	PrefixLength uint8
+}
+
 // templateProcess reads the template from a file and apply the parameters
 // provided through an interface.
 func templateProcess(file string, p interface{}) (out string, err error) {
@@ -69,3 +129,8 @@ func templateProcess(file string, p interface{}) (out string, err error) {
 	}
 	return buf.String(), nil
 }
+
+// ⍻	NOT CHECK MARK (U+237B)	e28dbb
+// ✅	WHITE HEAVY CHECK MARK (U+2705)	e29c85
+// ✓	CHECK MARK (U+2713)	e29c93
+// ✔	HEAVY CHECK MARK (U+2714) e29c94

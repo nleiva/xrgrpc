@@ -1,7 +1,8 @@
 /*
 1. Configures a Streaming Telemetry subscription using an OpenConfig model template.
-2. Configures a BGP neighbor using an OpenConfig model template.
-3. Subscribes to the Telemetry stream to learn about BGP neighbor status.
+2. Configures an Interface using an OpenConfig model template.
+3. Configures a BGP neighbor using an OpenConfig model template.
+4. Subscribes to the Telemetry stream to learn about BGP neighbor status.
 */
 
 package main
@@ -13,6 +14,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net"
 	"os"
 	"os/signal"
 	"time"
@@ -24,13 +26,14 @@ import (
 
 func main() {
 	// OpenConfig YANG templates
-	bgpt := flag.String("bt", "../input/template/oc-bgp.json", "BGP Config Template")
 	telet := flag.String("tt", "../input/template/oc-telemetry.json", "Telemetry Config Template")
+	intt := flag.String("it", "../input/template/oc-interface.json", "Interface Config Template")
+	bgpt := flag.String("bt", "../input/template/oc-bgp.json", "BGP Config Template")
 	flag.Parse()
 
 	// Determine the ID for first the transaction.
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	id := r.Int63n(10000)
+	ra := rand.New(rand.NewSource(time.Now().UnixNano()))
+	id := ra.Int63n(10000)
 
 	// Manually specify target parameters.
 	router, err := xr.BuildRouter(
@@ -44,10 +47,16 @@ func main() {
 		log.Fatalf("target parameters are incorrect: %s", err)
 	}
 
+	// Extract the IP address
+	r, err := net.ResolveTCPAddr("tcp", router.Host)
+	if err != nil {
+		log.Fatalf("Incorrect IP address: %v", err)
+	}
+
 	// Connect to the router
 	conn, ctx, err := xr.Connect(*router)
 	if err != nil {
-		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", r.IP, err)
 	}
 	defer conn.Close()
 
@@ -72,16 +81,51 @@ func main() {
 		log.Fatalf("Telemetry, %s", err)
 	}
 
-	// Applly Telemetry config
+	// Apply Telemetry config
 	_, err = xr.MergeConfig(ctx, conn, teleConfig, id)
 	if err != nil {
-		log.Fatalf("failed to config %s: %v\n", router.Host, err)
+		log.Fatalf("failed to config %s: %v\n", r.IP, err)
 	} else {
-		fmt.Printf("\n1)\nTelemetry config applied on %s (Request ID: %v)\n", router.Host, id)
+		fmt.Printf("\n1)\n%sTelemetry%s config applied on %s (Request ID: %v)\n", blue, white, r.IP, id)
 	}
 	id++
 
-	// First Pause
+	// Pause
+	fmt.Print("Press 'Enter' to continue...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+	// Generate the Interface config.
+	// At present, ethernet-like media are identified by the value ethernetCsmacd(6).
+	// The index of the subinterface, or logical interface number. On systems with no
+	// support for subinterfaces, or not using subinterfaces, this value should default
+	// to 0, i.e., the default subinterface.
+	ic := new(InterfaceConfig)
+	ic.Name = "HundredGigE0/0/0/1"
+	ic.Type = "iana-if-type:ethernetCsmacd"
+	ic.MTU = 9192
+	ic.Description = "Peer Link"
+	ic.Enabled = true
+	ic.AutoNegotiate = false
+	ic.Index = 0
+	// Change to net.IP
+	ic.Address = "2001:db8:cafe::1"
+	ic.PrefixLength = 64
+
+	intConfig, err := templateProcess(*intt, ic)
+	if err != nil {
+		log.Fatalf("Interface, %s", err)
+	}
+
+	// Apply Interface config
+	_, err = xr.MergeConfig(ctx, conn, intConfig, id)
+	if err != nil {
+		log.Fatalf("failed to config %s: %v\n", r.IP, err)
+	} else {
+		fmt.Printf("\n2)\n%sInterface%s config applied on %s (Request ID: %v)\n", blue, white, r.IP, id)
+	}
+	id++
+
+	// Pause
 	fmt.Print("Press 'Enter' to continue...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
@@ -101,12 +145,12 @@ func main() {
 	// Apply the BGP template+parameters to the target
 	_, err = xr.MergeConfig(ctx, conn, bgpConfig, id)
 	if err != nil {
-		log.Fatalf("failed to config %s: %v\n", router.Host, err)
+		log.Fatalf("failed to config %s: %v\n", r.IP, err)
 	} else {
-		fmt.Printf("\n2)\nBGP Config applied on %s (Request ID: %v)\n", router.Host, id)
+		fmt.Printf("\n3)\n%sBGP%s Config applied on %s (Request ID: %v)\n", blue, white, r.IP, id)
 	}
 
-	// Second Pause
+	// Pause
 	fmt.Print("Press 'Enter' to continue...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
@@ -121,7 +165,7 @@ func main() {
 	go func() {
 		select {
 		case <-c:
-			fmt.Printf("\nmanually cancelled the session to %v\n\n", router.Host)
+			fmt.Printf("\nmanually cancelled the session to %v\n\n", r.IP)
 			cancel()
 			return
 		case <-ctx.Done():
@@ -131,11 +175,11 @@ func main() {
 			return
 		case err = <-ech:
 			// Session canceled: "context canceled"
-			fmt.Printf("\ngRPC session to %v failed: %v\n\n", router.Host, err.Error())
+			fmt.Printf("\ngRPC session to %v failed: %v\n\n", r.IP, err.Error())
 			return
 		}
 	}()
-	fmt.Printf("\n3)\nReceiving Telemetry from %s ->\n\n", router.Host)
+	fmt.Printf("\n4)\nReceiving %sTelemetry%s from %s ->\n\n", blue, white, r.IP)
 
 	for tele := range ch {
 		message := new(telemetry.Telemetry)
@@ -188,7 +232,7 @@ func decodeKV(f *telemetry.TelemetryField, indent string, peer string, ok *bool)
 				t := time.Now()
 				fmt.Printf("\rNeighbor: %s, Time: %v, State: %s%s%s     ", peer, t.Format("15:04:05"), color, state, white)
 				if state == "bgp-st-estab" {
-					fmt.Printf("\n\nSession %sOK%s !! \n\n", green, white)
+					fmt.Printf("\n\n\n                        Session \u2705 \n\n\n")
 					os.Exit(0)
 				}
 			}
