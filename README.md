@@ -173,9 +173,9 @@ interface Loopback201
 
 - **Using a YANG config Template** (Merge)
 
-Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template ([bgptemplate.json](example/input/bgptemplate.json)), based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang), in this case and the specific parameters from [bgpparam.json](example/input/bgpparam.json).
+Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template ([bgp.json](example/input/template/bgp.json)), based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang), in this case and the specific parameters from [bgp-parameters.json](example/input/template/bgp-parameters.json).
 
-See below an extract from this [bgptemplate.json](example/input/bgptemplate.json) and notice NeighborAddress, PeerASN, Description and LocalAddress are variables to be defined.
+See below an extract from this [bgp.json](example/input/template/bgp.json) and notice NeighborAddress, PeerASN, Description and LocalAddress are variables to be defined.
 
 ```shell
 "neighbor": [
@@ -490,7 +490,7 @@ telemetry model-driven
 
 ### Config and Validate
 
-In order to validate the intended state of the network after a config change, we need to need to look at the associated telemetry data. In this example we will configure a BGP neighbor using a BGP config [template](https://golang.org/pkg/html/template/) based on the [OpenConfig BGP YANG model](https://github.com/openconfig/public/tree/master/release/models/bgp). See below an extract of [bgpoctemplate.json](example/input/bgpoctemplate.json).
+In order to validate the intended state of the network after a config change, we need to need to look at the associated telemetry data. In this example we will configure a BGP neighbor using a BGP config [template](https://golang.org/pkg/html/template/) based on the [OpenConfig BGP YANG model](https://github.com/openconfig/public/tree/master/release/models/bgp). See below an extract of [oc-bgp.json](example/input/template/oc-bgp.json).
 
 ```shell
 { "openconfig-bgp:bgp": {
@@ -602,7 +602,7 @@ router, err := xr.BuildRouter(
 	xr.WithUsername("cisco"),
 	xr.WithPassword("cisco"),
 	xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
-	xr.WithCert("../input/ems5502-2.pem"),
+	xr.WithCert("../input/certificate/ems5502-2.pem"),
 	xr.WithTimeout(5),
 )
 ```
