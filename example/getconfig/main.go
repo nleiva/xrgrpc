@@ -44,7 +44,7 @@ func main() {
 
 	// Setup a connection to the target. 'd' is the index of the router
 	// in the config file
-	d := 0
+	d := 1
 	conn, ctx, err := xr.Connect(targets.Routers[d])
 	if err != nil {
 		log.Fatalf("could not setup a client connection to %s, %v", targets.Routers[d].Host, err)

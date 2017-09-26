@@ -42,7 +42,8 @@ service gRPCExec {
 // Exec commands
     rpc ShowCmdTextOutput(ShowCmdArgs) returns(stream ShowCmdTextReply) {};
     rpc ShowCmdJSONOutput(ShowCmdArgs) returns(stream ShowCmdJSONReply) {};
-
+//    rpc ActionCLI(ActionCliArgs) returns(stream ActionCliReply) {};
+//    rpc ActionJSON(ActionJSONArgs) returns(stream ActionJSONReply) {};
 
 }
 
@@ -161,3 +162,24 @@ message CreateSubsReply {
     bytes data = 2;
     string errors = 3;
 }
+//message ActionCliArgs {
+//    int64 ReqId = 1;
+//    string cli  = 2;
+//}
+ 
+//message ActionCliReply {
+//    int64 ResReqId = 1;
+//    string output  = 2;
+//    string errors  = 3;
+//}
+ 
+//message ActionJSONArgs {
+//     int64 ReqId         = 1;
+//     string yangpathjson = 2;
+//}
+ 
+//message ActionJSONReply {
+//    int64 ResReqId  = 1;
+//    string yangjson = 2;
+//    string errors   = 3;
+//}

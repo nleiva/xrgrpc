@@ -23,10 +23,10 @@
 //		log.Fatalf("Do NOT recognize encoding: %v\n", *enc)
 //	}
 //
-// Tutorials to setup a testbed have been posted in
-// https://xrdocs.github.io/programmability/tutorials/2017-08-04-programming-ios-xr-with-grpc-and-go/
+// Tutorials to setup a testbed have been posted at:
 //
 // - Programming IOS-XR with gRPC and Go: https://xrdocs.github.io/programmability/tutorials/2017-08-04-programming-ios-xr-with-grpc-and-go/
+//
 // - Validate the intent of network config changes: https://xrdocs.github.io/programmability/tutorials/2017-08-14-validate-the-intent-of-network-config-changes/
 //
 package xrgrpc

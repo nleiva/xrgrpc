@@ -20,6 +20,39 @@ The end goal is to enable use-cases where multiple interactions with devices are
 
 ![oc-config-validate](https://github.com/nleiva/xrgrpc/blob/gh-pages/oc-config-validateH.gif)
 
+## Table of Contents
+
+- [gRPC library for Cisco IOS XR](#grpc-library-for-cisco-ios-xr)
+  * [Usage](#usage)
+    + [Get Config](#get-config)
+    + [Show Commands](#show-commands)
+      - [**Clear text**](#--clear-text--)
+      - [**JSON**](#--json--)
+    + [Configuring the router](#configuring-the-router)
+      - [**CLI config** (Merge)](#--cli-config----merge-)
+      - [**JSON** (Merge)](#--json----merge-)
+      - [**JSON** (Replace)](#--json----replace-)
+      - [**Using a YANG config Template** (Merge)](#--using-a-yang-config-template----merge-)
+    + [Removing router config](#removing-router-config)
+      - [**JSON**](#--json---1)
+    + [**CLI config multiple routers simultaneously** (Merge)](#--cli-config-multiple-routers-simultaneously----merge-)
+    + [Telemetry](#telemetry)
+      - [**JSON (GPBKV)**](#--json--gpbkv---)
+      - [**JSON (GPBKV): Exploring the fields**](#--json--gpbkv---exploring-the-fields--)
+      - [**JSON (GPBKV): OpenConfig**](#--json--gpbkv---openconfig--)
+      - [**GPB (Protobuf)**](#--gpb--protobuf---)
+    + [Config and Validate](#config-and-validate)
+    + [Service Layer API](#service-layer-api)
+      - [Add an IPv6 route](#add-an-ipv6-route)
+      - [SLA IOS XR config](#sla-ios-xr-config)
+    + [Bypass the config file](#bypass-the-config-file)
+  * [XR gRPC Config](#xr-grpc-config)
+    + [Port range](#port-range)
+  * [Certificate file](#certificate-file)
+  * [Compiling the proto files](#compiling-the-proto-files)
+  * [Compiling the Examples](#compiling-the-examples)
+
+
 ## Usage
 
 CLI examples to use the library are provided in the [example](example/) folder. The CLI specified in the examples is not definitive and might change as we go.
@@ -54,9 +87,9 @@ Config from [2001:420:2cff:1204::5502:1]:57344
 
 Provides the output of IOS XR cli commands for one router defined in [config.json](example/input/config.json). Two output format options are available; Unstructured text and JSON encoded:
 
-- **Clear text**
+#### **Clear text**
 
-```bash
+```console
 example/showcmd$ ./showcmd -cli "show isis database" -enc text
 
 Output from [2001:420:2cff:1204::5502:1]:57344
@@ -75,7 +108,7 @@ mrstn-5501-1.cisco.com.00-00  0x0000000c   0x65d5        1150            0/0/0
 2017/07/21 15:37:00 This process took 2.480039252s
 ```
 
-- **JSON**
+#### **JSON**
 
 ```shell
 example/showcmd$ ./showcmd -cli "show isis database" -enc json
@@ -107,11 +140,11 @@ Config from [2001:420:2cff:1204::5502:1]:57344
 
 ### Configuring the router
 
-- **CLI config** (Merge)
+#### **CLI config** (Merge)
 
 Applies CLI config commands on the device/router from the list in [config.json](example/input/config.json).
 
-```bash
+```console
 example/setconfig$ ./setconfig -cli "interface Lo11 ipv6 address 2001:db8::/128"
 
 Config applied to [2001:420:2cff:1204::5502:1]:57344
@@ -129,11 +162,11 @@ interface Loopback11
 !
 ```
 
-- **JSON** (Merge)
+#### **JSON** (Merge)
 
 Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It reads the target from [yangconfig.json](example/input/yangconfig.json). 
 
-```bash
+```console
 example/mergeconfig$ ./mergeconfig 
 
 Config merged on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 8162, Response ID: 8162
@@ -152,11 +185,11 @@ interface Loopback201
 !
 ```
 
-- **JSON** (Replace)
+#### **JSON** (Replace)
 
 Applies a YANG/JSON formatted config to one device/router (replaces the config for this section) from the list in [config.json](example/input/config.json). It learns the config to replace from [yangconfigrep.json](example/input/yangconfigrep.json). If we had merged instead, we would have ended up with two IPv6 addresses in this example.
 
-```bash
+```console
 example/replaceconfig$ ./replaceconfig 
 
 Config replaced on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 4616, Response ID: 4616
@@ -175,7 +208,7 @@ interface Loopback201
 !
 ```
 
-- **Using a YANG config Template** (Merge)
+#### **Using a YANG config Template** (Merge)
 
 Applies a YANG/JSON formatted config to one device/router (merges with existing config) from the list in [config.json](example/input/config.json). It takes a template ([bgp.json](example/input/template/bgp.json)), based on the BGP YANG model [Cisco-IOS-XR-ipv4-bgp-cfg](https://github.com/YangModels/yang/blob/master/vendor/cisco/xr/622/Cisco-IOS-XR-ipv4-bgp-cfg.yang), in this case and the specific parameters from [bgp-parameters.json](example/input/template/bgp-parameters.json).
 
@@ -245,11 +278,11 @@ While templates are cool, I'd recommend exploring one of these alternatives to h
 
 ### Removing router config
 
-- **JSON**
+#### **JSON**
 
 Removes YANG/JSON formatted config on one device/router from [config.json](example/input/config.json). It reads the config to delete from [yangdelconfig.json](example/input/yangdelconfig.json). The following example deletes both interfaces configured in the Merge example. See [yangdelintadd.json](example/input/yangdelintadd.json) to delete just the IP address and [yangdelintdesc.json](example/input/yangdelintdesc.json) for only the description of the interface.
 
-```bash
+```console
 example/deleteconfig$ ./deleteconfig 
 
 Config Deleted on [2001:420:2cff:1204::5502:1]:57344 -> Request ID: 2856, Response ID: 2856
@@ -273,7 +306,7 @@ end
 
 Applies CLI config commands to the list of routers specified on [config.json](example/input/config.json). Notice that even though we added two devices, the execution time did NOT increase. This is possible because of the use of [Golang Concurrency](https://blog.golang.org/pipelines) primitives.
 
-```bash
+```console
 example/setconfiglist$ ./setconfiglist -cli "interface Lo33 ipv6 address 2001:db8:33::1/128"
 
 Config applied to [2001:420:2cff:1204::5502:2]:57344
@@ -319,11 +352,11 @@ interface Loopback33
 
 ### Telemetry
 
-- **JSON (GPBKV)**
+#### **JSON (GPBKV)**
 
 Subscribe to a Telemetry stream. The Telemetry message is defined in [telemetry.proto](proto/telemetry/telemetry.proto). The payload is JSON encoded (self-describing GPB).
 
-```bash
+```console
 example/telemetry$ ./telemetry -subs "LLDP"
 Time 1500666991103, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
 {
@@ -358,7 +391,7 @@ telemetry model-driven
 !
 ```
 
-- **JSON (GPBKV): Exploring the fields**
+#### **JSON (GPBKV): Exploring the fields**
 
 Same as the previous example using a Cisco native YANG model. However this time we explore the fields in order to produce a custom output.
 
@@ -377,7 +410,7 @@ func exploreFields(f []*telemetry.TelemetryField, indent string) {
 
 The result looks like this:
 
-```bash
+```console
 example/telemetrykv$ ./telemetrykv
 ******************************************************************************************
 Time 01:24:48PM, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
@@ -400,11 +433,11 @@ Time 01:24:48PM, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors
 <snip>    
 ```
 
-- **JSON (GPBKV): OpenConfig**
+#### **JSON (GPBKV): OpenConfig**
 
 Same example as before, just calling a subscription that uses an OpenConfig model instead. The result looks like this:
 
-```bash
+```console
 example/telemetrykv$ ./telemetrykv -subs "BGP-OC"
 ******************************************************************************************
 Time 01:08:03PM, Path: openconfig-bgp:bgp/neighbors/neighbor/state
@@ -448,11 +481,11 @@ telemetry model-driven
 ```
 
 
-- **GPB (Protobuf)**
+#### **GPB (Protobuf)**
 
 Again, we subscribe to a Telemetry stream but we request the content is encoded with [protobuf](https://developers.google.com/protocol-buffers/). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp/lldp_neighbor.proto). We parse the message and modify the output to illustrate how to access to each field on it.
 
-```bash
+```console
 example/telemetrygpb$ ./telemetrygpb -subs "LLDP"
 Time 1500667512299, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
 {
@@ -523,7 +556,7 @@ The example will run a config checklist, composed of three items as a result of 
 
 The output of the example is very basic, but ilustrates all these points. Notice we receive BGP status every 5 seconds and the neighbor goes from bgp-st-idle to bgp-st-estab.
 
-```bash
+```console
 example/configvalidate$ ./configvalidate 
 ******************************************************************************************
 
@@ -596,6 +629,41 @@ BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle
 BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-estab
 ```
 
+### Service Layer API
+
+#### Add an IPv6 route
+
+Add a new route to the IPv6 routing table. 
+
+```console
+example/setroute$ ./setroute -pfx "2001:db8:1413::/48" -nh "2001:db8:cafe::2"
+2017/07/25 15:02:01 This process took 329.560647ms
+```
+
+Which results in:
+
+```console
+RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show route ipv6 unicast 2001:db8:1413::/48
+Tue Jul 25 15:02:20.369 EDT
+ 
+Routing entry for 2001:db8:1413::/48
+  Known via "application Service-layer", distance 2, metric 0
+  Installed Jul 25 15:01:54.011 for 00:00:27
+  Routing Descriptor Blocks
+    2001:db8:cafe::2, from ::
+      Route metric is 0
+  No advertising protos.
+```
+
+#### SLA IOS XR config
+
+```
+!! IOS XR Configuration version = 6.2.2
+grpc
+ service-layer
+!
+```
+
 ### Bypass the config file
 
 You can manually define the target without the config file [config.json](example/input/config.json), by calling the functional options "WithValue". See the snippet below from [definetarget](example/definetarget/main.go).
@@ -637,7 +705,7 @@ mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 565
 
 You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [input](example/input) folder (or any other location specified in [config.json](example/input/config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
 
-```bash
+```console
 [xrrouter.cisco.com:/var/xr/config/grpc]$ ls -la
 total 20
 drwxr-xr-x  3 root root 4096 Jul  5 17:47 .
@@ -652,13 +720,13 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 
 The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
 
-```bash
+```console
 proto/ems/$ protoc --go_out=plugins=grpc:. ems_grpc.proto
 ```
 
 The Go generated code in [lldp_neighbor.pb.go](proto/telemetry/lldp/lldp_neighbor.pb.go) is the result of the following:
 
-```bash
+```console
 proto/telemetry/lldp$ protoc --go_out=. lldp_neighbor.proto 
 ```
 
@@ -666,6 +734,6 @@ proto/telemetry/lldp$ protoc --go_out=. lldp_neighbor.proto
 
 Simply execute `go build` on the corresponding example folder. E.g.
 
-```bash
+```console
 example/telemetry$ go build
 ```
