@@ -167,7 +167,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 }
 
 
-// Connect will return a grpc.ClienConn to the target. No TLS encryption
+// ConnectInsecure will return a grpc.ClienConn to the target. No TLS encryption
 func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// opts holds the config options to set up the connection.
 	var opts []grpc.DialOption
