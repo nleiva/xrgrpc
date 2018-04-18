@@ -113,7 +113,9 @@ func WithCert(f string) RouterOption {
 // the PerRPCCredentials interface.
 type loginCreds struct {
 	Username, Password string
+	requireTLS         bool
 }
+
 
 // Method of the PerRPCCredentials interface.
 func (c *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
@@ -125,10 +127,11 @@ func (c *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]
 
 // Method of the PerRPCCredentials interface.
 func (c *loginCreds) RequireTransportSecurity() bool {
-	return true
+	return c.requireTLS
 }
 
-// Connect will return a grpc.ClienConn to the target.
+
+// Connect will return a grpc.ClienConn to the target. TLS encryption
 func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// opts holds the config options to set up the connection.
 	var opts []grpc.DialOption
@@ -143,16 +146,48 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 
 	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
 	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
+	opts = append(opts, grpc.WithTimeout(time.Millisecond * time.Duration(1500)))
 	opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
+	ctx, _ := context.WithTimeout(context.Background(), time.Second * time.Duration(xr.Timeout))
 
 	// Add user/password to config options array.
 	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
 		Username: xr.User,
-		Password: xr.Password}))
+		Password: xr.Password,
+		requireTLS: true }))
+
+	// conn represents a client connection to an RPC server (target).
+	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "fail to dial to target")
+	}
+	return conn, ctx, err
+}
+
+
+// ConnectInsecure will return a grpc.ClienConn to the target. No TLS encryption
+func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
+	// opts holds the config options to set up the connection.
+	var opts []grpc.DialOption
+
+	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
+	// This is valid if and only if WithBlock() is present
+	opts = append(opts, grpc.WithTimeout(time.Millisecond * time.Duration(1500)))
+	opts = append(opts, grpc.WithBlock())
+
+	// Add gRPC overall timeout to the config options array.
+	ctx, _ := context.WithTimeout(context.Background(), time.Second * time.Duration(xr.Timeout))
+
+	// Add user/password to config options array.
+	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
+		Username: xr.User,
+		Password: xr.Password,
+		requireTLS: false }))
+
+	// Allow sending the credentials without TSL
+	opts = append(opts, grpc.WithInsecure())
 
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
