@@ -30,7 +30,7 @@ The end goal is to enable use-cases where multiple interactions with devices are
       - [JSON](#json)
     + [Configuring the router](#configuring-the-router)
       - [CLI config (Merge)](#cli-config-merge)
-      - [JSON (Merge)](#json-merge-)
+      - [JSON (Merge)](#json-merge)
       - [JSON (Replace)](#json-replace)
       - [Using a YANG config Template (Merge)](#using-a-yang-config-template-merge)
     + [Removing router config](#removing-router-config)
