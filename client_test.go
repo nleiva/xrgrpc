@@ -346,6 +346,37 @@ func Server(t *testing.T, svc string) *grpc.Server {
 	return s
 }
 
+func ServerInsecure(t *testing.T, svc string) *grpc.Server {
+	lis, err := net.Listen("tcp", defaultPort)
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	// var opts []grpc.ServerOption
+	s := grpc.NewServer(
+		grpc.StreamInterceptor(streamInterceptor),
+		grpc.UnaryInterceptor(unaryInterceptor),
+	)
+	switch svc {
+	case "exec":
+		pb.RegisterGRPCExecServer(s, &execServer{})
+	case "opercon":
+		pb.RegisterGRPCConfigOperServer(s, &operConfigServer{})
+	default:
+	}
+
+	go func() {
+		err := s.Serve(lis)
+		// Serve always returns a non-nil error :-(
+		if strings.Contains(err.Error(), "use of closed network connection") {
+			return
+		}
+		if err != nil {
+			t.Fatalf("failed to serve: %v", err)
+		}
+	}()
+	return s
+}
+
 func TestConnect(t *testing.T) {
 	x := xr.CiscoGrpcClient{
 		// User/Password are per RPC based, won't be checked when dialing.
@@ -382,6 +413,57 @@ func TestConnect(t *testing.T) {
 			}
 			// Won't return Error if it keeps re-trying.
 			conn, ctx, err := xr.Connect(xc)
+			if err != nil {
+				if tc.err != "" {
+					return
+				}
+				t.Fatalf("could not setup a client connection to %v", xc.Host)
+			}
+			select {
+			case <-ctx.Done():
+				t.Fatalf("could not setup a client connection to %v in under 1.5 seconds", xc.Host)
+			// Just wait for 2.5 seconds for this local connection to be setup.
+			case <-time.After(2500 * time.Millisecond):
+				break
+			}
+			// Connection won't fail until it timeouts. It re-attempt to connect until this happens.
+			// Can initially timeout because of the WithTimeout option hard-coded to two seconds
+			// or after an overal timeout of 'x.Timeout'
+			conn.Close()
+		})
+	}
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestConnectInsecure(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		// User/Password are per RPC based, won't be checked when dialing.
+		// Cert and Key for localhost are provided in the test folder
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name   string
+		target string
+		certf  string
+		err    string
+	}{
+		{name: "local connection"},
+		{name: "wrong target", target: "192.168.0.1:57344", err: "TBD"},
+	}
+	s := ServerInsecure(t, "none")
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			// Get a copy of 'x' and change parameters of test case so requires
+			xc := x
+			// Won't return Error if it keeps re-trying.
+			conn, ctx, err := xr.ConnectInsecure(xc)
 			if err != nil {
 				if tc.err != "" {
 					return
