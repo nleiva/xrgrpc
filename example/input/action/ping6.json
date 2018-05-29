@@ -1,0 +1,10 @@
+{
+  "Cisco-IOS-XR-ping-act:ping":{
+    "destination":{
+      "destination":"2001:420:2cff:1204::1",
+      "timeout": 1,
+      "data-size": 1350,
+      "repeat-count": 2
+    }
+  }
+}

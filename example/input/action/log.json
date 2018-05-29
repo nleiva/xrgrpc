@@ -1,0 +1,6 @@
+{
+  "Cisco-IOS-XR-syslog-act:logmsg":{
+    "severity":"alert",
+    "message":"gRPC Generated: Device will be under maintenance for 2 hrs for planned activities"
+  }
+}

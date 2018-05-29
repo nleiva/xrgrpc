@@ -77,6 +77,26 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 	return nil
 }
 
+func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
+	if a.GetYangpathjson() != defaultYang {
+		stream.Send(&pb.ActionJSONReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongCmdErr,
+		})
+		return errors.New(wrongCmdErr)
+	}
+	m := map[string]string{"result": "action test output"}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return errors.New("could not encode the test response")
+	}
+	stream.Send(&pb.ActionJSONReply{
+		ResReqId: a.GetReqId(),
+		Yangjson: string(j),
+	})
+	return nil
+}
+
 // operConfigServer implements the GRPCConfigOperServer interface
 type operConfigServer struct{}
 
@@ -476,6 +496,48 @@ func TestShowCmdJSONOutput(t *testing.T) {
 					return
 				}
 				t.Fatalf("failed to get show command json output from %v", x.Host)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestActionJSONOutput(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+	tt := []struct {
+		name string
+		act  string
+		err  string
+	}{
+		{name: "local connection", act: defaultYang},
+		{name: "wrong command", act: wrongCmd, err: wrongCmdErr},
+	}
+	s := Server(t, "exec")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		t.Fatalf("could not setup a client connection to %v", x.Host)
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := xr.ActionJSON(ctx, conn, tc.act, id)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
+					return
+				}
+				t.Fatalf("failed to get action json output from %v", x.Host)
 			}
 		})
 		id++

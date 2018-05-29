@@ -116,7 +116,6 @@ type loginCreds struct {
 	requireTLS         bool
 }
 
-
 // Method of the PerRPCCredentials interface.
 func (c *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
 	return map[string]string{
@@ -129,7 +128,6 @@ func (c *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]
 func (c *loginCreds) RequireTransportSecurity() bool {
 	return c.requireTLS
 }
-
 
 // Connect will return a grpc.ClienConn to the target. TLS encryption
 func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
@@ -146,17 +144,17 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 
 	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
 	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond * time.Duration(1500)))
+	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
 	opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
-	ctx, _ := context.WithTimeout(context.Background(), time.Second * time.Duration(xr.Timeout))
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
 
 	// Add user/password to config options array.
 	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-		Username: xr.User,
-		Password: xr.Password,
-		requireTLS: true }))
+		Username:   xr.User,
+		Password:   xr.Password,
+		requireTLS: true}))
 
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
@@ -166,7 +164,6 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	return conn, ctx, err
 }
 
-
 // ConnectInsecure will return a grpc.ClienConn to the target. No TLS encryption
 func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// opts holds the config options to set up the connection.
@@ -174,17 +171,17 @@ func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, err
 
 	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
 	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond * time.Duration(1500)))
+	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
 	opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
-	ctx, _ := context.WithTimeout(context.Background(), time.Second * time.Duration(xr.Timeout))
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
 
 	// Add user/password to config options array.
 	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-		Username: xr.User,
-		Password: xr.Password,
-		requireTLS: false }))
+		Username:   xr.User,
+		Password:   xr.Password,
+		requireTLS: false}))
 
 	// Allow sending the credentials without TSL
 	opts = append(opts, grpc.WithInsecure())
@@ -228,8 +225,39 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	}
 }
 
+// ActionJSON returns the output of an action commands as a JSON structured output.
+func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) (string, error) {
+	var s string
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCExecClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ActionJSONArgs{ReqId: id, Yangpathjson: j}
+
+	// 'st' is the streamed result that comes back from the target.
+	st, err := c.ActionJSON(context.Background(), &a)
+	if err != nil {
+		return s, errors.Wrap(err, "gRPC ActionJSON failed")
+	}
+
+	for {
+		// Loop through the responses in the stream until there is nothing left.
+		r, err := st.Recv()
+		if err == io.EOF {
+			return s, nil
+		}
+		if len(r.GetErrors()) != 0 {
+			si := strconv.FormatInt(id, 10)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		}
+		if len(r.GetYangjson()) > 0 {
+			s += r.GetYangjson()
+		}
+	}
+}
+
 // ShowCmdJSONOutput returns the output of a CLI show commands
-// as a JSON structure output.
+// as a JSON structured output.
 func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, id int64) (string, error) {
 	var s string
 	// 'c' is the gRPC stub.

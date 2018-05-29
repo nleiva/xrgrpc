@@ -1,0 +1,10 @@
+{
+  "Cisco-IOS-XR-traceroute-act:traceroute":{
+    "destination":{
+      "destination":"www.cisco.com",
+      "port":33434,      
+      "max-ttl":20,  
+      "timeout":1
+    }
+  }
+}

@@ -1,7 +1,9 @@
 language: go
 
-go:  
-- 1.8.3
+go:
+- 1.8.3  
+- 1.8.7
+- 1.9.6
 - tip # The latest version of Go
 
 script: 

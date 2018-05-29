@@ -1,0 +1,10 @@
+{
+  "Cisco-IOS-XR-ping-act:ping":{
+    "destination":{
+      "destination":"10.87.89.1",
+      "type-of-service":46,
+      "do-not-frag": true,
+      "source": "10.87.89.181"
+    }
+  }
+}

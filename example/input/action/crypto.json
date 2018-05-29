@@ -1,0 +1,6 @@
+{
+  "Cisco-IOS-XR-crypto-act:key-generate-rsa-general-keys":{
+    "key-label": "test",
+    "key-modulus": 2048
+  }
+}
