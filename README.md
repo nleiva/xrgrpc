@@ -741,6 +741,8 @@ output from [2001:420:2cff:1204::7816:1]:57344
 2018/05/29 15:03:19 This process took 762.440427ms
 ```
 
+![ipv4-ping](https://github.com/nleiva/xrgrpc/blob/gh-pages/ipv4_ping.svg)
+
 - IPv6 Ping (`example/action` with [ping6.json](example/input/action/ping6.json))
 
 ```console
