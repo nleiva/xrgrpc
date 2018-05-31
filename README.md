@@ -18,7 +18,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The foloowing is a very simple config-validate example:
 
-![oc-config-validate](oc-config-validateH.gif?raw=true)
+![oc-config-validate](static/images/oc-config-validateH.gif?raw=true)
 
 ## Table of Contents
 
@@ -26,25 +26,30 @@ The end goal is to enable use-cases where multiple interactions with devices are
   * [Usage](#usage)
     + [Get Config](#get-config)
     + [Show Commands](#show-commands)
-      - [Clear text](#--clear-text--)
-      - [JSON](#--json--)
+      - [Clear text](#clear-text)
+      - [JSON](#json)
     + [Configuring the router](#configuring-the-router)
-      - [CLI config (Merge)](#--cli-config----merge-)
-      - [JSON (Merge)](#--json----merge-)
-      - [JSON (Replace)](#--json----replace-)
-      - [Using a YANG config Template (Merge)](#--using-a-yang-config-template----merge-)
+      - [CLI config (Merge)](#cli-config-merge)
+      - [JSON (Merge)](#json-merge)
+      - [JSON (Replace)](#json-replace)
+      - [Using a YANG config Template (Merge)](#using-a-yang-config-template-merge)
     + [Removing router config](#removing-router-config)
-      - [JSON](#--json---1)
-    + [CLI config multiple routers simultaneously (Merge)](#--cli-config-multiple-routers-simultaneously----merge-)
+      - [JSON](#json-1)
+    + [CLI config multiple routers simultaneously (Merge)](#cli-config-multiple-routers-simultaneously-merge)
     + [Telemetry](#telemetry)
-      - [JSON (GPBKV)](#--json--gpbkv---)
-      - [JSON (GPBKV): Exploring the fields](#--json--gpbkv---exploring-the-fields--)
-      - [JSON (GPBKV): OpenConfig](#--json--gpbkv---openconfig--)
-      - [GPB (Protobuf)](#--gpb--protobuf---)
+      - [JSON (GPBKV)](#json-gpbkv)
+      - [JSON (GPBKV): Exploring the fields](#json-gpbkv-exploring-the-fields)
+      - [JSON (GPBKV): OpenConfig](#json-gpbkv-openconfig)
+      - [GPB (Protobuf)](#gpb-protobuf)
     + [Config and Validate](#config-and-validate)
     + [Service Layer API](#service-layer-api)
       - [Add an IPv6 route](#add-an-ipv6-route)
       - [SLA IOS XR config](#sla-ios-xr-config)
+    + [Actions](#actions)
+      - [Ping](#ping)
+      - [Traceroute](#traceroute)
+      - [Log Generation](#log-generation)
+      - [Crypto Key Generation](#crypto-key-generation)
     + [Bypass the config file](#bypass-the-config-file)
   * [XR gRPC Config](#xr-grpc-config)
     + [Port range](#port-range)
@@ -692,6 +697,186 @@ grpc
  service-layer
 !
 ```
+
+### Actions
+
+There are multiple actions than can be triggered via gRPC on IOS XR devices running 6.3.1 or later. Below the YANG models supported to the date and some examples using this library.
+
+```console
+$ cd ~/yang/vendor/cisco/xr/641
+$ ls | grep act.yang
+Cisco-IOS-XR-cfgmgr-rollback-act.yang
+Cisco-IOS-XR-crypto-act.yang
+Cisco-IOS-XR-hwmod-mpa-reload-act.yang
+Cisco-IOS-XR-infra-statsd-act.yang
+Cisco-IOS-XR-ipv4-bgp-act.yang
+Cisco-IOS-XR-ipv4-ospf-act.yang
+Cisco-IOS-XR-ipv4-ping-act.yang
+Cisco-IOS-XR-ipv4-traceroute-act.yang
+Cisco-IOS-XR-ipv6-ospfv3-act.yang
+Cisco-IOS-XR-ipv6-ping-act.yang
+Cisco-IOS-XR-ipv6-traceroute-act.yang
+Cisco-IOS-XR-isis-act.yang
+Cisco-IOS-XR-lib-keychain-act.yang
+Cisco-IOS-XR-ping-act.yang
+Cisco-IOS-XR-snmp-test-trap-act.yang
+Cisco-IOS-XR-syslog-act.yang
+Cisco-IOS-XR-sysmgr-act.yang
+Cisco-IOS-XR-traceroute-act.yang
+Cisco-IOS-XR-upgrade-fpd-ng-act.yang
+```
+
+#### Ping
+
+- IPv4 Ping (`example/action` with [ping4.json](example/input/action/ping4.json))
+
+```console
+$ ./action -act "../input/action/ping4.json"
+
+output from [2001:420:2cff:1204::7816:1]:57344
+ {
+ "Cisco-IOS-XR-ping-act:output": {...}
+}
+
+2018/05/29 15:03:19 This process took 762.440427ms
+```
+
+![ipv4_ping](static/images/ipv4_ping.svg)
+
+- IPv6 Ping (`example/action` with [ping6.json](example/input/action/ping6.json))
+
+```console
+$ ./action -act "../input/action/ping6.json"
+
+output from [2001:420:2cff:1204::7816:1]:57344
+ {
+ "Cisco-IOS-XR-ping-act:output": {...}
+}
+
+2018/05/29 15:08:34 This process took 800.050845ms
+```
+
+The extended output looks like this:
+
+```json
+ {
+ "Cisco-IOS-XR-ping-act:output": {
+  "ping-response": {
+   "ipv6": {
+    "destination": "2001:420:2cff:1204::1",
+    "repeat-count": "2",
+    "data-size": "1350",
+    "timeout": "1",
+    "pattern": "abcd",
+    "rotate-pattern": false,
+    "replies": {
+     "reply": [
+      {
+       "reply-index": "1",
+       "result": "!"
+      },
+      {
+       "reply-index": "2",
+       "result": "!"
+      }
+     ]
+    },
+    "hits": "2",
+    "total": "2",
+    "success-rate": "100",
+    "rtt-min": "2",
+    "rtt-avg": "2",
+    "rtt-max": "3"
+   }
+  }
+ }
+}
+```
+
+![ipv6_ping](static/images/ipv6_ping.svg)
+
+#### Traceroute
+
+- Dual-Stack traceroute (`example/action` with [traceroute.json](example/input/action/traceroute.json)). Target is an FQDN ([www.cisco.com](www.cisco.com)).
+
+```console
+ ./action -act "../input/action/traceroute.json"
+
+output from [2001:420:2cff:1204::7816:1]:57344
+ {
+ "Cisco-IOS-XR-traceroute-act:output": {
+  "traceroute-response": {
+   "ipv6": {
+    "destination": "2001:420:1101:1::a",
+    "hops": {
+     "hop": [
+      {
+       "hop-index": 1,
+       "hop-address": "2001:420:2cff:1204::1",
+       "hop-hostname": "mrstn-vlan44.cisco.com",
+       "probes": {
+        "probe": [
+         {
+          "probe-index": 0,
+          "delta-time": 1
+         },
+         {
+          "probe-index": 1,
+          "delta-time": 1
+         },
+         {
+          "probe-index": 2,
+          "delta-time": 1
+         }
+        ]
+       }
+      },
+...
+
+2018/05/29 15:12:50 This process took 15.241451154s
+```
+
+#### Log Generation
+
+- Log event generation (`example/action` with [log.json](example/input/action/log.json)).
+
+```console
+$ ./action -act "../input/action/log.json"
+
+output from [2001:420:2cff:1204::7816:1]:57344
+
+2018/05/29 15:23:59 This process took 42.585985ms
+```
+
+On the router
+
+```console
+#
+RP/0/RP0/CPU0:May 29 19:23:59.297 UTC: emsd[1096]: %OS-SYSLOG-1-LOG_ALERT : gRPC Generated: Device will be under maintenance for 2 hrs for planned activities
+```
+
+![log](static/images/log.svg)
+
+#### Crypto Key Generation
+
+- SSH Crypto key generation (`example/action` with [crypto.json](example/input/action/crypto.json)).
+
+```console
+$ ./action -act "../input/action/crypto.json"
+
+output from [2001:420:2cff:1204::7816:1]:57344
+
+2018/05/29 15:26:06 This process took 2.721703931s
+```
+
+```console
+#
+RP/0/RP0/CPU0:May 29 19:26:04.249 UTC: cepki[420]: %SECURITY-CEPKI-6-KEY_INFO : crypto key RSA zeroized, label:test
+RP/0/RP0/CPU0:May 29 19:26:06.907 UTC: cepki[420]: %SECURITY-CEPKI-6-KEY_INFO : crypto key RSA generated, label:test, modBits:2048
+RP/0/RP0/CPU0:May 29 19:26:06.917 UTC: cepki[420]: %SECURITY-CEPKI-6-INFO : key database updated
+```
+
+![crypto](static/images/crypto.svg)
 
 ### Bypass the config file
 
