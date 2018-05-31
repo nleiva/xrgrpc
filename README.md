@@ -800,7 +800,7 @@ The extended output looks like this:
 - Dual-Stack traceroute (`example/action` with [traceroute.json](example/input/action/traceroute.json)). Target is an FQDN ([www.cisco.com](www.cisco.com)).
 
 ```console
- ./action -act "../input/action/traceroute.json"
+$ ./action -act "../input/action/traceroute.json"
 
 output from [2001:420:2cff:1204::7816:1]:57344
  {
