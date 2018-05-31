@@ -18,7 +18,7 @@ Minimalistic library to interact with IOS XR devices using the gRPC framework. L
 
 The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The foloowing is a very simple config-validate example:
 
-![oc-config-validate](https://github.com/nleiva/xrgrpc/blob/gh-pages/oc-config-validateH.gif)
+![oc-config-validate](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/oc-config-validateH.gif)
 
 ## Table of Contents
 
@@ -741,7 +741,7 @@ output from [2001:420:2cff:1204::7816:1]:57344
 2018/05/29 15:03:19 This process took 762.440427ms
 ```
 
-![ipv4-ping](https://github.com/nleiva/xrgrpc/blob/gh-pages/ipv4_ping.svg)
+![ipv4-ping](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/ipv4_ping.svg)
 
 - IPv6 Ping (`example/action` with [ping6.json](example/input/action/ping6.json))
 
@@ -792,6 +792,8 @@ The extended output looks like this:
  }
 }
 ```
+
+![ipv6-ping](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/ipv6_ping.svg)
 
 #### Traceroute
 
@@ -853,6 +855,8 @@ On the router
 RP/0/RP0/CPU0:May 29 19:23:59.297 UTC: emsd[1096]: %OS-SYSLOG-1-LOG_ALERT : gRPC Generated: Device will be under maintenance for 2 hrs for planned activities
 ```
 
+![log](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/log.svg)
+
 #### Crypto Key Generation
 
 - SSH Crypto key generation (`example/action` with [crypto.json](example/input/action/crypto.json)).
@@ -872,25 +876,7 @@ RP/0/RP0/CPU0:May 29 19:26:06.907 UTC: cepki[420]: %SECURITY-CEPKI-6-KEY_INFO : 
 RP/0/RP0/CPU0:May 29 19:26:06.917 UTC: cepki[420]: %SECURITY-CEPKI-6-INFO : key database updated
 ```
 
-```console
-RP/0/RP0/CPU0:mrstn-7816-1.cisco.com# show crypto key mypubkey rsa
-Tue May 29 19:26:49.693 UTC
-Key label: test
-Type     : RSA General purpose
-Size     : 2048
-Created  : 19:26:04 UTC Tue May 29 2018
-Data     :
- 30820122 300D0609 2A864886 F70D0101 01050003 82010F00 3082010A 02820101
- 00C30A10 D8807E77 43B1D20A 9896CBC0 43EB8A6C 2C7D8B65 87AFED27 BC1B616C
- 1477913A C083155B CD4A2372 12CA49B4 48FCBBF3 87DC5C50 844FDF2E A88BBDC4
- D32C42D7 5103FFBA 529EE896 7CAE4D64 4569A724 6488F738 1B370C07 654EE086
- 95A26AF2 314FBFD3 2C7335D1 1BD3DE17 94792028 BB70DF69 221DAF11 D4D31E99
- FF438F6B 3809A72A 0EC1368B 5F223E26 3CAFC439 73EFCB50 609036D2 91128505
- 3769BD7E EDCEAD5E A059E0C3 FF4EC5A2 8EED960D 0933DCEB D0426734 30FFA057
- 2689900F BDC413EE 0F7640E2 724CC1DF 0701F4FA CFE1389B 53124C3E F217FA95
- 92A5FF5B C5DBBC3D EC5C62ED FCABC88F 1483CDFB F6EF29DF 3182C729 BA5A81B7
- 23020301 0001
- ```
+![crypto](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/crypto.svg)
 
 ### Bypass the config file
 
