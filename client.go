@@ -364,6 +364,26 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id i
 	return r.Result.String(), err
 }
 
+// CommitReplace issues a cli and JSON config to the target.
+func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, id int64) error {
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCConfigOperClient(conn)
+	si := strconv.FormatInt(id, 10)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.CommitReplaceArgs{Cli: cli, Yangjson: js, ReqId: id}
+
+	// 'r' is the result that comes back from the target.
+	r, err := c.CommitReplace(context.Background(), &a)
+	if err != nil {
+		return errors.Wrap(err, "gRPC CommitReplace failed")
+	}
+	if len(r.Errors) != 0 {
+		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+	}
+	return err
+}
+
 // DiscardConfig deletes configs with ID 'id' on the target.
 // Need to clarify its use-case.
 // func DiscardConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (int64, error) {

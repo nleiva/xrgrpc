@@ -180,7 +180,7 @@ func (s *operConfigServer) CliConfig(ctx context.Context, a *pb.CliConfigArgs) (
 	return
 }
 
-// CommitConfig commits a config. Need to clarify its use-case.
+// TODO: Add test case for this!
 func (s *operConfigServer) CommitReplace(ctx context.Context, a *pb.CommitReplaceArgs) (r *pb.CommitReplaceReply, err error) {
 	return
 }
