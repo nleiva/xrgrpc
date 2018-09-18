@@ -4,19 +4,20 @@
 [![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc) 
 [![codecov](https://codecov.io/gh/nleiva/xrgrpc/branch/master/graph/badge.svg)](https://codecov.io/gh/nleiva/xrgrpc) 
 [![Go Report Card](https://goreportcard.com/badge/github.com/nleiva/xrgrpc)](https://goreportcard.com/report/github.com/nleiva/xrgrpc) 
-[![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for the description of the service interface and the structure of the payload messages. gRPC uses protocol buffers as the Interface Definition Language (IDL).
 
 **Tutorials**: 
+
 - [Programming IOS-XR with gRPC and Go](https://xrdocs.github.io/programmability/tutorials/2017-08-04-programming-ios-xr-with-grpc-and-go/).
 - [Validate the intent of network config changes](https://xrdocs.github.io/programmability/tutorials/2017-08-14-validate-the-intent-of-network-config-changes/).
 
 **Other Examples**:
+
 - [A collection of OpenConfig and Cisco IOS XR examples](https://github.com/nleiva/xroc).
 - [Parsing Telemetry data from IOS XR YANG models](https://github.com/nleiva/nettable).
 
-The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The foloowing is a very simple config-validate example:
+The end goal is to enable use-cases where multiple interactions with devices are required. gRPC arises as a strong option to single interface network elements to retrieve info from the devices, apply configurations to it, generate telemetry streams from them, programming the RIB/FIB and so on. The following is a very simple config-validate example:
 
 ![oc-config-validate](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/oc-config-validateH.gif)
 
@@ -255,7 +256,7 @@ See below an extract from this [bgp.json](example/input/template/bgp.json) and n
 ] 
 ```
 
-Now we execute and inmediatly request the updated BGP config from the device with a subsequent RPC call.
+Now we execute and inmediately request the updated BGP config from the device with a subsequent RPC call.
 
 - example/mergetemplate
 
@@ -584,7 +585,7 @@ The example will run a config checklist, composed of three items as a result of 
 2. We make a gRPC request to get the running configuration on the target to validate the change submitted was actually applied.
 3. We subscribe to a BGP Neighbor State Telemetry stream to track the status changes.
 
-The output of the example is very basic, but ilustrates all these points. Notice we receive BGP status every 5 seconds and the neighbor goes from bgp-st-idle to bgp-st-estab.
+The output of the example is very basic, but illustrates all these points. Notice we receive BGP status every 5 seconds and the neighbor goes from bgp-st-idle to bgp-st-estab.
 
 - example/configvalidate
 
