@@ -3,7 +3,8 @@
 [![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc) 
 [![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc) 
 [![codecov](https://codecov.io/gh/nleiva/xrgrpc/branch/master/graph/badge.svg)](https://codecov.io/gh/nleiva/xrgrpc) 
-[![Go Report Card](https://goreportcard.com/badge/github.com/nleiva/xrgrpc)](https://goreportcard.com/report/github.com/nleiva/xrgrpc) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/nleiva/xrgrpc)](https://goreportcard.com/report/github.com/nleiva/xrgrpc)
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/nleiva/xrgrpc)
 
 Minimalistic library to interact with IOS XR devices using the gRPC framework. Look at the [IOS XR proto file](proto/ems_grpc.proto) for the description of the service interface and the structure of the payload messages. gRPC uses protocol buffers as the Interface Definition Language (IDL).
 
