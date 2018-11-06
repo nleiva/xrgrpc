@@ -933,6 +933,19 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 -rw-rw-rw-  1 root root 1513 Jul  5 17:47 ems.pem
 ```
 
+### Self-signed certificate for testing
+
+This needs to be renewed once a year.
+
+```console
+xrgrpc/test$ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj '/CN=localhost'
+Generating a 4096 bit RSA private key
+......................................................................................++
+........................................................++
+writing new private key to 'key.pem'
+-----
+```
+
 ## Compiling the proto files
 
 The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
