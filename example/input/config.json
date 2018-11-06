@@ -11,10 +11,10 @@
   {
   "User":"cisco",
   "Password": "cisco",
-  "Host": "[2001:420:2cff:1204::5502:2]:57344",
+  "Host": "10.87.89.122:57344",
   "Cert": "../input/certificate/ems5502-2.pem",
   "Domain": "ems.cisco.com",
-  "Timeout": 4
+  "Timeout": 30
  },
   {
   "User":"cisco",
