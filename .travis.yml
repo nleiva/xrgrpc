@@ -1,9 +1,9 @@
 language: go
 sudo: false
 go:
-  - 1.9
-  - 1.10
-  - tip # The latest version of Go
+  - "1.9"
+  - "1.10"  # https://docs.travis-ci.com/user/languages/go/
+  - tip     # The latest version of Go
 os:
   - linux
   - osx
