@@ -300,7 +300,7 @@ func unaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServ
 
 // Validates username and password
 func authorize(ctx context.Context) error {
-	if md, ok := metadata.FromContext(ctx); ok {
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if len(md["username"]) > 0 && md["username"][0] == defaultUser &&
 			len(md["password"]) > 0 && md["password"][0] == defaultPass {
 			return nil
@@ -336,10 +336,10 @@ func Server(t *testing.T, svc string) *grpc.Server {
 	go func() {
 		err := s.Serve(lis)
 		// Serve always returns a non-nil error :-(
-		if strings.Contains(err.Error(), "use of closed network connection") {
-			return
-		}
 		if err != nil {
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
 			t.Fatalf("failed to serve: %v", err)
 		}
 	}()
@@ -367,10 +367,10 @@ func ServerInsecure(t *testing.T, svc string) *grpc.Server {
 	go func() {
 		err := s.Serve(lis)
 		// Serve always returns a non-nil error :-(
-		if strings.Contains(err.Error(), "use of closed network connection") {
-			return
-		}
 		if err != nil {
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
 			t.Fatalf("failed to serve: %v", err)
 		}
 	}()

@@ -1,23 +1,18 @@
 language: go
 sudo: false
+go:
+  - 1.11.x
+  - tip
 os:
   - linux
   - osx
 matrix:
-  include:
-  - go: "1.9.x"
-    script:  go test -v . -coverprofile=coverage.txt -covermode=atomic
-  - go: "1.10.x"
-    script:  go test -v ./... -coverprofile=coverage.txt -covermode=atomic
-  - go: "1.11.x"
-    script: go test -v -mod=vendor ./... -coverprofile=coverage.txt -covermode=atomic
-  - go: tip
-    script: go test -v -mod=vendor ./... -coverprofile=coverage.txt -covermode=atomic
   allow_failures:
     - go: tip
   fast_finish: true
 env:
   - GO111MODULE=on
-install: true
+script: 
+- go test -v ./... -coverprofile=coverage.txt -covermode=atomic
 after_success:
   - bash <(curl -s https://codecov.io/bash)
