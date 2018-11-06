@@ -25,6 +25,7 @@ The end goal is to enable use-cases where multiple interactions with devices are
 ## Table of Contents
 
 - [gRPC library for Cisco IOS XR](#grpc-library-for-cisco-ios-xr)
+  * [Prerequisite Tools](#prerequisite-tools)
   * [Usage](#usage)
     + [Get Config](#get-config)
     + [Show Commands](#show-commands)
@@ -59,6 +60,9 @@ The end goal is to enable use-cases where multiple interactions with devices are
   * [Compiling the proto files](#compiling-the-proto-files)
   * [Compiling the Examples](#compiling-the-examples)
 
+## Prerequisite Tools
+
+* [Go (at least Go 1.9)](https://golang.org/dl/)
 
 ## Usage
 

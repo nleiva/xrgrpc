@@ -1,13 +1,17 @@
 language: go
-
+sudo: false
 go:
-- 1.8.3  
-- 1.8.7
-- 1.9.6
-- tip # The latest version of Go
-
+  - 1.9
+  - 1.10
+  - tip # The latest version of Go
+os:
+  - linux
+  - osx
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
 script: 
 - go test -v . -coverprofile=coverage.txt -covermode=atomic # ./... includes the vendor folder.
-
 after_success:
   - bash <(curl -s https://codecov.io/bash)
