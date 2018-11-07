@@ -314,8 +314,8 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 			si := strconv.FormatInt(id, 10)
 			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 		}
-		if len(r.Yangjson) > 0 {
-			s += r.Yangjson
+		if len(r.GetYangjson()) > 0 {
+			s += r.GetYangjson()
 		}
 	}
 }
