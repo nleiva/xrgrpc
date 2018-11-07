@@ -310,9 +310,9 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 		if err == io.EOF {
 			return s, nil
 		}
-		if len(r.Errors) != 0 {
+		if len(r.GetErrors()) != 0 {
 			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 		}
 		if len(r.Yangjson) > 0 {
 			s += r.Yangjson
@@ -333,9 +333,9 @@ func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64)
 	if err != nil {
 		return errors.Wrap(err, "gRPC CliConfig failed")
 	}
-	if len(r.Errors) != 0 {
+	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return err
 }
@@ -357,8 +357,8 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id i
 	if err != nil {
 		return s, errors.Wrap(err, "gRPC CommitConfig failed")
 	}
-	if len(r.Errors) != 0 {
-		return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+	if len(r.GetErrors()) != 0 {
+		return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	// What about r.ResReqId. Seems to equal to id sent.
 	return r.Result.String(), err
@@ -378,8 +378,8 @@ func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, i
 	if err != nil {
 		return errors.Wrap(err, "gRPC CommitReplace failed")
 	}
-	if len(r.Errors) != 0 {
-		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+	if len(r.GetErrors()) != 0 {
+		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return err
 }
@@ -398,9 +398,9 @@ func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, i
 // 	if err != nil {
 // 		return -1, errors.Wrap(err, "gRPC ConfigDiscardChanges failed")
 // 	}
-// 	if len(r.Errors) != 0 {
+// 	if len(r.GetErrors()) != 0 {
 // 		si := strconv.FormatInt(id, 10)
-// 		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+// 		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 // 	}
 // 	return r.ResReqId, nil
 // }
@@ -418,9 +418,9 @@ func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64
 	if err != nil {
 		return -1, errors.Wrap(err, "gRPC MergeConfig failed")
 	}
-	if len(r.Errors) != 0 {
+	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
@@ -439,9 +439,9 @@ func DeleteConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int6
 	if err != nil {
 		return -1, errors.Wrap(err, "gRPC DeleteConfig failed")
 	}
-	if len(r.Errors) != 0 {
+	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
@@ -460,9 +460,9 @@ func ReplaceConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int
 	if err != nil {
 		return -1, errors.Wrap(err, "gRPC ReplaceConfig failed")
 	}
-	if len(r.Errors) != 0 {
+	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.Errors)
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
