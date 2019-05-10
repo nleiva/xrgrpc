@@ -547,6 +547,41 @@ Type:  6.2.2.22I, NCS-5500, Address value:"2001:f00:bb::2"
 ...
 ```
 
+To print out the entire message, look at the example in [telemetrygpbfull](example/telemetrygpbfull/main.go). To decode the message we need to look at the "LLDP neighbor details" definition in [lldp_neighbor.proto](proto/telemetry/lldp65x/lldp_neighbor.proto).
+
+- example/telemetrygpbfull
+
+```console
+$ go run main.go
+Time 1557511431921, Path: Cisco-IOS-XR-ethernet-lldp-oper:lldp/nodes/node/neighbors/details/detail
+Decoded Keys:
+{
+  "node_name": "0/0/CPU0",
+  "interface_name": "HundredGigE0/0/0/0",
+  "device_id": "mrstn-5502-1.cisco.com"
+}
+Decoded JSON Neighbors:
+{
+  "lldp_neighbor": [
+    {
+      "receiving_interface_name": "HundredGigE0/0/0/0",
+      "device_id": "mrstn-5502-1.cisco.com",
+      "chassis_id": "008a.9646.6cdf",
+      "port_id_detail": "HundredGigE0/0/0/0",
+      "hold_time": 15,
+      "enabled_capabilities": "R",
+      "detail": {
+        "peer_mac_address": "00:8a:96:46:6c:00",
+        "port_description": "TRANSPORT: mrstn-5502-2.cisco.com",
+        "system_name": "mrstn-5502-1.cisco.com",
+        "system_description": " 6.5.3.02I, NCS-5500",
+        "time_remaining": 11,
+        "system_capabilities": "R",
+        "enabled_capabilities": "R",
+        "network_addresses": {
+        ...
+```
+
 The Subscription ID has to exist on the device <sup>[1](#myfootnote1)</sup>.
 
 ```
