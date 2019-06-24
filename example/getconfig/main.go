@@ -1,7 +1,3 @@
-/*
-gRPC Client
-*/
-
 package main
 
 import (
@@ -25,29 +21,28 @@ func main() {
 	// To time this process
 	defer timeTrack(time.Now())
 
-	// Config file; defaults to "config.json"
-	cfg := flag.String("cfg", "../input/config.json", "Configuration file")
-	// YANG path arguments; defaults to "yangpaths.json"
-	ypath := flag.String("ypath", "../input/yangpaths.json", "YANG path arguments")
+	// YANG path arguments; defaults to "yangocpaths.json"
+	ypath := flag.String("ypath", "../input/yangocpaths.json", "YANG path arguments")
 	flag.Parse()
 	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
-	output := "Empty"
+	var output string
 
-	// Define target parameters from the configuration file
-	targets := xr.NewDevices()
-	err := xr.DecodeJSONConfig(targets, *cfg)
+	// Manually specify target parameters.
+	router, err := xr.BuildRouter(
+		xr.WithUsername("cisco"),
+		xr.WithPassword("cisco"),
+		xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
+		xr.WithTimeout(5),
+	)
 	if err != nil {
-		log.Fatalf("could not read the config: %v\n", err)
+		log.Fatalf("could not build a router, %v", err)
 	}
 
-	// Setup a connection to the target. 'd' is the index of the router
-	// in the config file
-	d := 1
-	conn, ctx, err := xr.Connect(targets.Routers[d])
+	conn, ctx, err := xr.Connect(*router)
 	if err != nil {
-		log.Fatalf("could not setup a client connection to %s, %v", targets.Routers[d].Host, err)
+		log.Fatalf("could not setup a client connection to %s, %v", router.Host, err)
 	}
 	defer conn.Close()
 
@@ -58,7 +53,7 @@ func main() {
 	}
 	output, err = xr.GetConfig(ctx, conn, string(js), id)
 	if err != nil {
-		log.Fatalf("could not get the config from %s, %v", targets.Routers[d].Host, err)
+		log.Fatalf("could not get the config from %s, %v", router.Host, err)
 	}
-	fmt.Printf("\nconfig from %s\n %s\n", targets.Routers[d].Host, output)
+	fmt.Printf("\nconfig from %s\n %s\n", router.Host, output)
 }

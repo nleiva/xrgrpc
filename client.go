@@ -1,6 +1,8 @@
 package xrgrpc
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
@@ -129,13 +131,39 @@ func (c *loginCreds) RequireTransportSecurity() bool {
 	return c.requireTLS
 }
 
+func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) {
+	if xr.Cert != "" {
+		// creds provides the TLS credentials from the input certificate file.
+		// I am assuming xr.Domain was set with With Cert
+		return credentials.NewClientTLSFromFile(xr.Cert, xr.Domain)
+	}
+	// TODO: make this an input.
+	skipVerify := true
+	xr.Domain = "ems.cisco.com"
+	// Inspired by https://github.com/johnsiilver/getcert.
+	nconn, err := net.Dial("tcp", xr.Host)
+	if err != nil {
+		return nil, fmt.Errorf("problem dialing %s: %s", xr.Host, err)
+	}
+	config := &tls.Config{ServerName: xr.Domain, InsecureSkipVerify: skipVerify}
+	tconn := tls.Client(nconn, config)
+	if err := tconn.Handshake(); err != nil {
+		return nil, fmt.Errorf("problem with TLS Handshake: %s", err)
+	}
+	certPool := x509.NewCertPool()
+	for _, cert := range tconn.ConnectionState().PeerCertificates {
+		certPool.AddCert(cert)
+	}
+	return credentials.NewClientTLSFromCert(certPool, xr.Domain), nil
+}
+
 // Connect will return a grpc.ClienConn to the target. TLS encryption
 func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// opts holds the config options to set up the connection.
 	var opts []grpc.DialOption
 
 	// creds provides the TLS credentials from the input certificate file.
-	creds, err := credentials.NewClientTLSFromFile(xr.Cert, xr.Domain)
+	creds, err := newClientTLS(xr)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to construct TLS credentialst")
 	}
@@ -144,7 +172,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 
 	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
 	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
+	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(2000)))
 	opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.

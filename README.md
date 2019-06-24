@@ -958,7 +958,9 @@ mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 565
 
 ## Certificate file
 
-You need to retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [input](example/input) folder (or any other location specified in [config.json](example/input/config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
+Update 6/24/2019: You no longer need to download the certicate file manually. If you don't specify a file, it will be downloaded automatically as in the [getconfig](example/getconfig/main.go) example.
+
+You can optionally retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [input](example/input) folder (or any other location specified in [config.json](example/input/config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
 
 - /var/xr/config/grpc
 
