@@ -140,17 +140,35 @@ func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) 
 	// TODO: make this an input.
 	skipVerify := true
 	xr.Domain = "ems.cisco.com"
+
+	// Add CA cert. FILE LOCATION CANNOT BE HARDCODED!!!!
+	// file := "../input/certificate/ca.pem"
+	// b, err := ioutil.ReadFile(file)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("problem reading CA file %s: %s", file, err)
+	// }
+	certPool := x509.NewCertPool()
+	// certPool, err := x509.SystemCertPool()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("problem loading CA certs from system: %s", err)
+	// }
+	// if !certPool.AppendCertsFromPEM(b) {
+	// 	return nil, fmt.Errorf("failed to append CA certificate")
+	// }
 	// Inspired by https://github.com/johnsiilver/getcert.
 	nconn, err := net.Dial("tcp", xr.Host)
 	if err != nil {
 		return nil, fmt.Errorf("problem dialing %s: %s", xr.Host, err)
 	}
-	config := &tls.Config{ServerName: xr.Domain, InsecureSkipVerify: skipVerify}
+	config := &tls.Config{
+		ServerName:         xr.Domain,
+		InsecureSkipVerify: skipVerify,
+		RootCAs:            certPool,
+	}
 	tconn := tls.Client(nconn, config)
 	if err := tconn.Handshake(); err != nil {
 		return nil, fmt.Errorf("problem with TLS Handshake: %s", err)
 	}
-	certPool := x509.NewCertPool()
 	for _, cert := range tconn.ConnectionState().PeerCertificates {
 		certPool.AddCert(cert)
 	}
@@ -165,8 +183,9 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// creds provides the TLS credentials from the input certificate file.
 	creds, err := newClientTLS(xr)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to construct TLS credentialst")
+		return nil, nil, errors.Wrap(err, "failed to construct TLS credentials")
 	}
+
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
 
