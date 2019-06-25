@@ -1,7 +1,3 @@
-/*
-gRPC Client
-*/
-
 package main
 
 import (
@@ -33,7 +29,7 @@ func main() {
 	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
-	output := "Empty"
+	var output string
 
 	// Define target parameters from the configuration file
 	targets := xr.NewDevices()

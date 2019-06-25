@@ -1,13 +1,7 @@
-/*
-gRPC Client
-*/
-
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -21,12 +15,6 @@ import (
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 )
-
-func prettyprint(b []byte) ([]byte, error) {
-	var out bytes.Buffer
-	err := json.Indent(&out, b, "", "  ")
-	return out.Bytes(), err
-}
 
 func main() {
 	// Subs options; LLDP, we will add some more

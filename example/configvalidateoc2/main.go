@@ -24,7 +24,7 @@ import (
 
 // Colors, just for fun.
 const (
-	blue   = "\x1b[34;1m"
+	// blue   = "\x1b[34;1m"
 	white  = "\x1b[0m"
 	red    = "\x1b[31;1m"
 	green  = "\x1b[32;1m"
@@ -160,7 +160,7 @@ func exploreFields(f []*telemetry.TelemetryField, indent string, peer string, ok
 
 func decodeKV(f *telemetry.TelemetryField, indent string, peer string, ok *bool) {
 	// This is a very specific scenario, just for this example.
-	color := white
+	var color string
 	switch f.GetValueByType().(type) {
 	case *telemetry.TelemetryField_StringValue:
 		switch f.GetName() {

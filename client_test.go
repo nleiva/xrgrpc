@@ -44,25 +44,34 @@ type execServer struct{}
 
 func (s *execServer) ShowCmdTextOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_ShowCmdTextOutputServer) error {
 	if a.GetCli() != defaultCmd {
-		stream.Send(&pb.ShowCmdTextReply{
+		err := stream.Send(&pb.ShowCmdTextReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongCmdErr,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongCmdErr)
 	}
-	stream.Send(&pb.ShowCmdTextReply{
+	err := stream.Send(&pb.ShowCmdTextReply{
 		ResReqId: a.GetReqId(),
 		Output:   "show test output",
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_ShowCmdJSONOutputServer) error {
 	if a.GetCli() != defaultCmd {
-		stream.Send(&pb.ShowCmdJSONReply{
+		err := stream.Send(&pb.ShowCmdJSONReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongCmdErr,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongCmdErr)
 	}
 	m := map[string]string{"result": "show test output"}
@@ -70,19 +79,25 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 	if err != nil {
 		return errors.New("could not encode the test response")
 	}
-	stream.Send(&pb.ShowCmdJSONReply{
+	err = stream.Send(&pb.ShowCmdJSONReply{
 		ResReqId:   a.GetReqId(),
 		Jsonoutput: string(j),
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
 	if a.GetYangpathjson() != defaultYang {
-		stream.Send(&pb.ActionJSONReply{
+		err := stream.Send(&pb.ActionJSONReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongCmdErr,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongCmdErr)
 	}
 	m := map[string]string{"result": "action test output"}
@@ -90,10 +105,13 @@ func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJ
 	if err != nil {
 		return errors.New("could not encode the test response")
 	}
-	stream.Send(&pb.ActionJSONReply{
+	err = stream.Send(&pb.ActionJSONReply{
 		ResReqId: a.GetReqId(),
 		Yangjson: string(j),
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -102,10 +120,13 @@ type operConfigServer struct{}
 
 func (s *operConfigServer) GetConfig(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetConfigServer) error {
 	if a.GetYangpathjson() != defaultYang {
-		stream.Send(&pb.ConfigGetReply{
+		err := stream.Send(&pb.ConfigGetReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongYangErr,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongYangErr)
 	}
 	m := map[string]string{"result": "config"}
@@ -113,10 +134,13 @@ func (s *operConfigServer) GetConfig(a *pb.ConfigGetArgs, stream pb.GRPCConfigOp
 	if err != nil {
 		return errors.New("could not encode the test response")
 	}
-	stream.Send(&pb.ConfigGetReply{
+	err = stream.Send(&pb.ConfigGetReply{
 		ResReqId: a.GetReqId(),
 		Yangjson: string(j),
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -211,10 +235,13 @@ func (s *operConfigServer) ConfigDiscardChanges(context.Context, *pb.DiscardChan
 
 func (s *operConfigServer) GetOper(a *pb.GetOperArgs, stream pb.GRPCConfigOper_GetOperServer) error {
 	if a.GetYangpathjson() != defaultYang {
-		stream.Send(&pb.GetOperReply{
+		err := stream.Send(&pb.GetOperReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongYangErr,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongYangErr)
 	}
 	m := map[string]string{"result": "oper"}
@@ -222,10 +249,13 @@ func (s *operConfigServer) GetOper(a *pb.GetOperArgs, stream pb.GRPCConfigOper_G
 	if err != nil {
 		return errors.New("could not encode the test response")
 	}
-	stream.Send(&pb.GetOperReply{
+	err = stream.Send(&pb.GetOperReply{
 		ResReqId: a.GetReqId(),
 		Yangjson: string(j),
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -240,10 +270,13 @@ func (s *operConfigServer) CreateSubs(a *pb.CreateSubsArgs, stream pb.GRPCConfig
 		return fmt.Errorf("%s, '%v' not supported", wrongEncode, a.GetEncode())
 	}
 	if a.GetSubidstr() != defaultSubsID {
-		stream.Send(&pb.CreateSubsReply{
+		err := stream.Send(&pb.CreateSubsReply{
 			ResReqId: a.GetReqId(),
 			Errors:   wrongSubsID,
 		})
+		if err != nil {
+			return err
+		}
 		return errors.New(wrongSubsID)
 	}
 	m := map[string]string{"result": "oper"}
@@ -268,10 +301,13 @@ func (s *operConfigServer) CreateSubs(a *pb.CreateSubsArgs, stream pb.GRPCConfig
 	for {
 		select {
 		case <-ticker.C:
-			stream.Send(&pb.CreateSubsReply{
+			err := stream.Send(&pb.CreateSubsReply{
 				ResReqId: a.GetReqId(),
 				Data:     j,
 			})
+			if err != nil {
+				return err
+			}
 		case <-timeout:
 			ticker.Stop()
 			return nil

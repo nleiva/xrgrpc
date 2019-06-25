@@ -1,7 +1,3 @@
-/*
-gRPC Client
-*/
-
 package main
 
 import (

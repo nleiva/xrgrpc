@@ -134,26 +134,25 @@ func (c *loginCreds) RequireTransportSecurity() bool {
 func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) {
 	if xr.Cert != "" {
 		// creds provides the TLS credentials from the input certificate file.
-		// I am assuming xr.Domain was set with With Cert
+		// I am assuming xr.Domain was set with WithCert
 		return credentials.NewClientTLSFromFile(xr.Cert, xr.Domain)
 	}
 	// TODO: make this an input.
+	// If false, you need to provice the CA cert
 	skipVerify := true
 	xr.Domain = "ems.cisco.com"
 
+	certPool := x509.NewCertPool()
+
 	// Add CA cert. FILE LOCATION CANNOT BE HARDCODED!!!!
-	// file := "../input/certificate/ca.pem"
+	// file := "../input/certificate/ca.cert"
 	// b, err := ioutil.ReadFile(file)
 	// if err != nil {
 	// 	return nil, fmt.Errorf("problem reading CA file %s: %s", file, err)
 	// }
-	certPool := x509.NewCertPool()
-	// certPool, err := x509.SystemCertPool()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("problem loading CA certs from system: %s", err)
-	// }
+
 	// if !certPool.AppendCertsFromPEM(b) {
-	// 	return nil, fmt.Errorf("failed to append CA certificate")
+	//	return nil, fmt.Errorf("failed to append CA certificate")
 	// }
 	// Inspired by https://github.com/johnsiilver/getcert.
 	nconn, err := net.Dial("tcp", xr.Host)
@@ -170,6 +169,8 @@ func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) 
 		return nil, fmt.Errorf("problem with TLS Handshake: %s", err)
 	}
 	for _, cert := range tconn.ConnectionState().PeerCertificates {
+		// fmt.Println("Cert: Common Name: ", cert.Issuer.CommonName)
+		// fmt.Println("Cert: Serial Number: ", cert.Issuer.SerialNumber)
 		certPool.AddCert(cert)
 	}
 	return credentials.NewClientTLSFromCert(certPool, xr.Domain), nil
