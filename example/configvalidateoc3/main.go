@@ -92,7 +92,10 @@ func main() {
 
 	// Pause
 	fmt.Print("Press 'Enter' to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if err != nil {
+		log.Fatalf("problem detecting newline character: %v", err)
+	}
 
 	// Generate the Interface config.
 	// At present, ethernet-like media are identified by the value ethernetCsmacd(6).
@@ -127,8 +130,10 @@ func main() {
 
 	// Pause
 	fmt.Print("Press 'Enter' to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if err != nil {
+		log.Fatalf("problem detecting newline character: %v", err)
+	}
 	// Generate the BGP config
 	neighbor := &NeighborConfig{
 		LocalAs:         64512,
@@ -146,14 +151,15 @@ func main() {
 	_, err = xr.MergeConfig(ctx, conn, bgpConfig, id)
 	if err != nil {
 		log.Fatalf("failed to config %s: %v\n", r.IP, err)
-	} else {
-		fmt.Printf("\n3)\n%sBGP%s Config applied on %s (Request ID: %v)\n", blue, white, r.IP, id)
 	}
+	fmt.Printf("\n3)\n%sBGP%s Config applied on %s (Request ID: %v)\n", blue, white, r.IP, id)
 
 	// Pause
 	fmt.Print("Press 'Enter' to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if err != nil {
+		log.Fatalf("problem detecting newline character: %v", err)
+	}
 	// Encoding GPBKV
 	var e int64 = 3
 	id++
@@ -205,7 +211,7 @@ func exploreFields(f []*telemetry.TelemetryField, indent string, peer string, ok
 
 func decodeKV(f *telemetry.TelemetryField, indent string, peer string, ok *bool) {
 	// This is a very specific scenario, just for this example.
-	color := white
+	var color string
 	switch f.GetValueByType().(type) {
 	case *telemetry.TelemetryField_StringValue:
 		switch f.GetName() {

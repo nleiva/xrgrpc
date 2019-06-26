@@ -18,7 +18,7 @@ package main
 */
 
 // NetworkSerializer is the https://peeringdb.com/apidocs/#!/net/Network_list data model
-type NetworkSerializer struct {
+/* type NetworkSerializer struct {
 	ID              int               `json:"id"`
 	OrgID           int               `json:"org_id"`
 	Org             string            `json:"org"`
@@ -50,7 +50,7 @@ type NetworkSerializer struct {
 	Created         string            `json:"created"`
 	Updated         string            `json:"updated"`
 	Status          string            `json:"status"`
-}
+} */
 
 // NetworkSerializer is the https://peeringdb.com/apidocs/#!/net/Network_list data model
 //

@@ -2,7 +2,6 @@ package xrgrpc
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
@@ -137,43 +136,28 @@ func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) 
 		// I am assuming xr.Domain was set with WithCert
 		return credentials.NewClientTLSFromFile(xr.Cert, xr.Domain)
 	}
-	// TODO: make this an input.
-	// If false, you need to provice the CA cert
+	// TODO: make skipVerify an input. If false, you need to provice the CA cert.
 	skipVerify := true
 	xr.Domain = "ems.cisco.com"
 
-	certPool := x509.NewCertPool()
+	// certPool := x509.NewCertPool()
 
 	// Add CA cert. FILE LOCATION CANNOT BE HARDCODED!!!!
-	// file := "../input/certificate/ca.cert"
-	// b, err := ioutil.ReadFile(file)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("problem reading CA file %s: %s", file, err)
-	// }
+	/* 	file := "../input/certificate/ca.cert"
+	   	b, err := ioutil.ReadFile(file)
+	   	if err != nil {
+	   		return nil, fmt.Errorf("problem reading CA file %s: %s", file, err)
+	   	}
 
-	// if !certPool.AppendCertsFromPEM(b) {
-	//	return nil, fmt.Errorf("failed to append CA certificate")
-	// }
-	// Inspired by https://github.com/johnsiilver/getcert.
-	nconn, err := net.Dial("tcp", xr.Host)
-	if err != nil {
-		return nil, fmt.Errorf("problem dialing %s: %s", xr.Host, err)
-	}
+	   	if !certPool.AppendCertsFromPEM(b) {
+	   		return nil, fmt.Errorf("failed to append CA certificate")
+	   	} */
 	config := &tls.Config{
-		ServerName:         xr.Domain,
+		// ServerName:         xr.Domain,
 		InsecureSkipVerify: skipVerify,
-		RootCAs:            certPool,
+		// RootCAs:            certPool,
 	}
-	tconn := tls.Client(nconn, config)
-	if err := tconn.Handshake(); err != nil {
-		return nil, fmt.Errorf("problem with TLS Handshake: %s", err)
-	}
-	for _, cert := range tconn.ConnectionState().PeerCertificates {
-		// fmt.Println("Cert: Common Name: ", cert.Issuer.CommonName)
-		// fmt.Println("Cert: Serial Number: ", cert.Issuer.SerialNumber)
-		certPool.AddCert(cert)
-	}
-	return credentials.NewClientTLSFromCert(certPool, xr.Domain), nil
+	return credentials.NewTLS(config), nil
 }
 
 // Connect will return a grpc.ClienConn to the target. TLS encryption

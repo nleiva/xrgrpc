@@ -27,7 +27,7 @@ func main() {
 	// Determine the ID for the transaction.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := r.Int63n(10000)
-	output := "Empty"
+	var output string
 
 	// Manually specify target parameters.
 	router, err := xr.BuildRouter(

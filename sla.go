@@ -230,12 +230,12 @@ func setupNotifChannel(conn *grpc.ClientConn, ch chan int) {
 			ch <- 1
 			continue
 		case pb.SLGlobalNotifType_SL_GLOBAL_EVENT_TYPE_ERROR:
-			err = fmt.Errorf("%s", r.ErrStatus.String())
+			_ = fmt.Errorf("%s", r.ErrStatus.String())
 			break
 		case pb.SLGlobalNotifType_SL_GLOBAL_EVENT_TYPE_HEARTBEAT:
 			continue
 		default:
-			err = fmt.Errorf("%s", r.ErrStatus.String())
+			_ = fmt.Errorf("%s", r.ErrStatus.String())
 			return
 		}
 	}
