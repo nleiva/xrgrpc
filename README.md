@@ -1,7 +1,7 @@
 # gRPC library for Cisco IOS XR
 
 [![GoDoc](https://godoc.org/github.com/nleiva/xrgrpc?status.svg)](https://godoc.org/github.com/nleiva/xrgrpc) 
-[![Build Status](https://travis-ci.org/nleiva/xrgrpc.svg?branch=master)](https://travis-ci.org/nleiva/xrgrpc) 
+[![Test](https://github.com/nleiva/xrgrpc/actions/workflows/test.yml/badge.svg)](https://github.com/nleiva/xrgrpc/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/nleiva/xrgrpc/branch/master/graph/badge.svg)](https://codecov.io/gh/nleiva/xrgrpc) 
 [![Go Report Card](https://goreportcard.com/badge/github.com/nleiva/xrgrpc)](https://goreportcard.com/report/github.com/nleiva/xrgrpc)
 [![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/nleiva/xrgrpc)
@@ -979,12 +979,10 @@ drwx------  2 root root 4096 Jul  3 12:50 dialout
 This needs to be renewed once a year.
 
 ```console
-xrgrpc/test$ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj '/CN=localhost'
-Generating a 4096 bit RSA private key
-......................................................................................++
-........................................................++
-writing new private key to 'key.pem'
------
+$ openssl req -new -x509 -nodes -subj '/C=US/CN=localhost' \
+              -addext "subjectAltName = DNS:localhost" \
+              -newkey rsa:4096 -keyout test/key.pem -out \
+              test/cert.pem -days 365
 ```
 
 ## Compiling the proto files
