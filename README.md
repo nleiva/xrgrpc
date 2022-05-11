@@ -45,9 +45,6 @@ The end goal is to enable use-cases where multiple interactions with devices are
       - [JSON (GPBKV): OpenConfig](#json-gpbkv-openconfig)
       - [GPB (Protobuf)](#gpb-protobuf)
     + [Config and Validate](#config-and-validate)
-    + [Service Layer API](#service-layer-api)
-      - [Add an IPv6 route](#add-an-ipv6-route)
-      - [SLA IOS XR config](#sla-ios-xr-config)
     + [Bypass the config file](#bypass-the-config-file)
   * [XR gRPC Config](#xr-grpc-config)
     + [Port range](#port-range)
@@ -730,43 +727,6 @@ telemetry model-driven
 !
 ```
 
-### Service Layer API
-
-#### Add an IPv6 route
-
-Add a new route to the IPv6 routing table. 
-
-- example/setroute
-
-```console
-$ ./setroute -pfx "2001:db8:1413::/48" -nh "2001:db8:cafe::2"
-2017/07/25 15:02:01 This process took 329.560647ms
-```
-
-Which results in:
-
-```console
-RP/0/RP0/CPU0:mrstn-5502-1.cisco.com#show route ipv6 unicast 2001:db8:1413::/48
-Tue Jul 25 15:02:20.369 EDT
- 
-Routing entry for 2001:db8:1413::/48
-  Known via "application Service-layer", distance 2, metric 0
-  Installed Jul 25 15:01:54.011 for 00:00:27
-  Routing Descriptor Blocks
-    2001:db8:cafe::2, from ::
-      Route metric is 0
-  No advertising protos.
-```
-
-#### SLA IOS XR config
-
-```
-!! IOS XR Configuration version = 6.2.2
-grpc
- service-layer
-!
-```
-
 ### Actions
 
 >*NOTE*: Support for actions has been deprecated on XR, most likely in favor of gNOI.
@@ -1042,15 +1002,6 @@ $ protoc --go_out=. \
 $ protoc --go_out=. \
     --go_opt=Mproto/telemetry/lldp/lldp_neighbor.proto=proto/telemetry/lldp \
     proto/telemetry/lldp/lldp_neighbor.proto
-```
-
-- `proto/sla`
-
-```console
-$ cd proto/sla
-$ protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    *.proto
 ```
 
 ## Running the Examples
