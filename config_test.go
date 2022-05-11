@@ -2,7 +2,6 @@ package xrgrpc_test
 
 import (
 	"net"
-	"os"
 	"strings"
 	"testing"
 
