@@ -3,10 +3,11 @@ module github.com/nleiva/xrgrpc
 go 1.17
 
 require (
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.5.0
 	github.com/pkg/errors v0.8.0
 	golang.org/x/net v0.0.0-20181106065722-10aee1819953
 	google.golang.org/grpc v1.16.0
+	google.golang.org/protobuf v1.28.0
 )
 
 require (

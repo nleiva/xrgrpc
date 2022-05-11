@@ -62,7 +62,7 @@ The end goal is to enable use-cases where multiple interactions with devices are
 
 ## Prerequisite Tools
 
-* [Go (at least Go 1.11)](https://golang.org/dl/)
+* [Go (at least Go 1.17)](https://golang.org/dl/)
 
 ## Usage
 
@@ -702,6 +702,19 @@ BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-idle
 BGP Neighbor; IP: 2001:db8:cafe::2, ASN: 64512, State bgp-st-estab
 ```
 
+The telemetry subscription config is:
+
+```
+telemetry model-driven
+ sensor-group BGPNeighbor
+  sensor-path Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/default-vrf/afs/af/neighbor-af-table/neighbor
+ !
+ subscription BGP
+  sensor-group-id BGPNeighbor sample-interval 2000
+ !
+!
+```
+
 ### Service Layer API
 
 #### Add an IPv6 route
@@ -926,11 +939,10 @@ You can manually define the target without the config file [config.json](example
 ```go
 // Manually specify target parameters.
 router, err := xr.BuildRouter(
-	xr.WithUsername("cisco"),
-	xr.WithPassword("cisco"),
-	xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
-	xr.WithCert("../input/certificate/ems5502-2.pem"),
-	xr.WithTimeout(5),
+  xr.WithUsername("admin"),
+  xr.WithPassword("C1sco12345"),
+  xr.WithHost("sandbox-iosxr-1.cisco.com:57777"),
+  xr.WithTimeout(45),
 )
 ```
 
@@ -985,7 +997,7 @@ $ openssl req -new -x509 -nodes -subj '/C=US/CN=localhost' \
               test/cert.pem -days 365
 ```
 
-## Compiling the proto files
+## Generating Go binding from protobuf files
 
 The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
 
@@ -995,20 +1007,24 @@ The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the resul
 $ protoc --go_out=plugins=grpc:. ems_grpc.proto
 ```
 
-The Go generated code in [lldp_neighbor.pb.go](proto/telemetry/lldp/lldp_neighbor.pb.go) is the result of the following:
-
-- proto/telemetry/lldp
+The Go generated code in [bgp_nbr_bag.pb.go](proto/telemetry/bgp/bgp_nbr_bag.pb.go) is the result of the following:
 
 ```console
-$ protoc --go_out=. lldp_neighbor.proto 
+protoc --go_out=. \
+  --go_opt=Mproto/telemetry/bgp/bgp_nbr_bag.proto=proto/telemetry/bgp \
+  proto/telemetry/bgp/bgp_nbr_bag.proto
 ```
 
-## Compiling the Examples
+## Running the Examples
 
-Simply execute `go build` on the corresponding example folder. E.g.
-
-- example/telemetry
+After cloning the repo, go the a folder example and execute `go run main.go`. For example:
 
 ```console
-$ go build
+$ cd example/configvalidate
+$ go run main.go 
 ```
+
+### Links
+
+- [XR YANG models](https://github.com/YangModels/yang/tree/main/vendor/cisco/xr)
+- [XR Proto files](https://github.com/ios-xr/model-driven-telemetry/tree/master/protos)

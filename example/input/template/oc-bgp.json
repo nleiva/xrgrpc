@@ -1,31 +1,72 @@
-{ "openconfig-bgp:bgp": {
-   "global": {
-    "config": {
-     "as": {{.LocalAs}}
-    }
-   },
-   "neighbors": {
-    "neighbor": [
-     {
-      "neighbor-address": "{{.NeighborAddress}}",
-      "config": {
-       "neighbor-address": "{{.NeighborAddress}}",
-       "peer-as": {{.PeerAs}},
-       "description": "{{.Description}}"
-      },
-      "afi-safis": {
-       "afi-safi": [
-        {
-         "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
-         "config": {
-          "afi-safi-name": "openconfig-bgp-types:ipv6-unicast",
-          "enabled": true
-         }
+{
+  "openconfig-network-instance:network-instances": {
+    "network-instance": [
+      {
+        "name": "default",
+        "protocols": {
+          "protocol": [
+            {
+              "identifier": "openconfig-policy-types:BGP",
+              "name": "default",
+              "config": {
+                "identifier": "openconfig-policy-types:BGP",
+                "name": "default"
+              },
+              "bgp": {
+                "global": {
+                  "config": {
+                    "as": {{.LocalAs}}
+                  },
+                  "afi-safis": {
+                    "afi-safi": [
+                      {
+                        "afi-safi-name": "openconfig-bgp-types:IPV4_UNICAST",
+                        "config": {
+                          "afi-safi-name": "openconfig-bgp-types:IPV4_UNICAST",
+                          "enabled": true
+                        }
+                      },
+                      {
+                        "afi-safi-name": "openconfig-bgp-types:IPV6_UNICAST",
+                        "config": {
+                          "afi-safi-name": "openconfig-bgp-types:IPV6_UNICAST",
+                          "enabled": true
+                        }
+                      }
+                    ]
+                  }
+                },
+                "neighbors": {
+                  "neighbor": [
+                    {
+                      "neighbor-address": "{{.NeighborAddress}}",
+                      "config": {
+                        "neighbor-address": "{{.NeighborAddress}}",
+                        "peer-as": {{.PeerAs}},
+                        "description": "{{.Description}}"
+                      },
+                      "afi-safis": {
+                        "afi-safi": [
+                          {
+                            "afi-safi-name": "openconfig-bgp-types:IPV6_UNICAST",
+                            "config": {
+                              "afi-safi-name": "openconfig-bgp-types:IPV6_UNICAST",
+                              "enabled": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "config": {
+          "name": "default"
         }
-       ]
       }
-     }
     ]
-   }
   }
 }

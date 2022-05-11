@@ -31,9 +31,9 @@ func main() {
 
 	// Manually specify target parameters.
 	router, err := xr.BuildRouter(
-		xr.WithUsername("cisco"),
-		xr.WithPassword("cisco"),
-		xr.WithHost("[2001:420:2cff:1204::5502:2]:57344"),
+		xr.WithUsername("admin"),
+		xr.WithPassword("C1sco12345"),
+		xr.WithHost("sandbox-iosxr-1.cisco.com:57777"),
 		xr.WithTimeout(5),
 	)
 	if err != nil {
