@@ -16,7 +16,6 @@ import (
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 	lldp "github.com/nleiva/xrgrpc/proto/telemetry/lldp"
-	"github.com/pkg/errors"
 )
 
 func prettyprint(b []byte) ([]byte, error) {
@@ -136,15 +135,15 @@ func decodeKeys(bk []byte, k *lldp.LldpNeighbor_KEYS) (string, error) {
 	err := proto.Unmarshal(bk, k)
 	s := ""
 	if err != nil {
-		return s, errors.Wrap(err, "could not unmarshall the message keys")
+		return s, fmt.Errorf("could not unmarshall the message keys: %w", err)
 	}
 	b, err := json.Marshal(k)
 	if err != nil {
-		return s, errors.Wrap(err, "could not marshall into JSON")
+		return s, fmt.Errorf("could not marshall into JSON: %w", err)
 	}
 	b, err = prettyprint(b)
 	if err != nil {
-		return s, errors.Wrap(err, "could not pretty-print the message")
+		return s, fmt.Errorf("could not pretty-print the message: %w", err)
 	}
 	return string(b), err
 }

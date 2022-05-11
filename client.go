@@ -8,9 +8,9 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"errors"
 
 	pb "github.com/nleiva/xrgrpc/proto/ems"
-	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -78,7 +78,7 @@ func WithHost(h string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		_, err := net.ResolveTCPAddr("tcp", h)
 		if err != nil {
-			return errors.Wrap(err, "not a valid host address/port")
+			return fmt.Errorf("not a valid host address/port: %w", err)
 		}
 		r.Host = h
 		return nil
@@ -101,7 +101,7 @@ func WithTimeout(t int) RouterOption {
 func WithCert(f string) RouterOption {
 	return func(r *CiscoGrpcClient) error {
 		if _, err := os.Stat(f); os.IsNotExist(err) {
-			return errors.Wrap(err, "not a valid file location")
+			return fmt.Errorf("not a valid file location: %w", err)
 		}
 		r.Cert = f
 		// XR self-signed certificates are issued for CN=ems.cisco.com
@@ -168,7 +168,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// creds provides the TLS credentials from the input certificate file.
 	creds, err := newClientTLS(xr)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to construct TLS credentials")
+		return nil, nil, fmt.Errorf("failed to construct TLS credentials: %w", err)
 	}
 
 	// Add TLS credentials to config options array.
@@ -191,7 +191,7 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "fail to dial to target")
+		return nil, nil, fmt.Errorf("fail to dial to target: %w", err)
 	}
 	return conn, ctx, err
 }
@@ -221,7 +221,7 @@ func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, err
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "fail to dial to target")
+		return nil, nil, fmt.Errorf("fail to dial to target: %w", err)
 	}
 	return conn, ctx, err
 }
@@ -238,7 +238,7 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	// 'st' is the streamed result that comes back from the target.
 	st, err := c.ShowCmdTextOutput(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC ShowCmdTextOutput failed")
+		return s, fmt.Errorf("gRPC ShowCmdTextOutput failed: %w", err)
 	}
 
 	for {
@@ -269,7 +269,7 @@ func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) 
 	// 'st' is the streamed result that comes back from the target.
 	st, err := c.ActionJSON(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC ActionJSON failed")
+		return s, fmt.Errorf("gRPC ActionJSON failed: %w", err)
 	}
 
 	for {
@@ -301,7 +301,7 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	// 'st' is the streamed result that comes back from the target.
 	st, err := c.ShowCmdJSONOutput(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC ShowCmdJSONOutput failed")
+		return s, fmt.Errorf("gRPC ShowCmdJSONOutput failed: %w", err)
 	}
 
 	for {
@@ -333,7 +333,7 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 	// 'st' is the streamed result that comes back from the target.
 	st, err := c.GetConfig(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC GetConfig failed")
+		return s, fmt.Errorf("gRPC GetConfig failed: %w", err)
 	}
 
 	for {
@@ -363,7 +363,7 @@ func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64)
 	// 'r' is the result that comes back from the target.
 	r, err := c.CliConfig(ctx, &a)
 	if err != nil {
-		return errors.Wrap(err, "gRPC CliConfig failed")
+		return fmt.Errorf("gRPC CliConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
@@ -387,7 +387,7 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id i
 	// 'r' is the result that comes back from the target.
 	r, err := c.CommitConfig(context.Background(), &a)
 	if err != nil {
-		return s, errors.Wrap(err, "gRPC CommitConfig failed")
+		return s, fmt.Errorf("gRPC CommitConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
@@ -408,34 +408,13 @@ func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, i
 	// 'r' is the result that comes back from the target.
 	r, err := c.CommitReplace(context.Background(), &a)
 	if err != nil {
-		return errors.Wrap(err, "gRPC CommitReplace failed")
+		return fmt.Errorf("gRPC CommitReplace failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
 	}
 	return err
 }
-
-// DiscardConfig deletes configs with ID 'id' on the target.
-// Need to clarify its use-case.
-// func DiscardConfig(ctx context.Context, conn *grpc.ClientConn, id int64) (int64, error) {
-// 	// 'c' is the gRPC stub.
-// 	c := pb.NewGRPCConfigOperClient(conn)
-
-// 	// 'a' is the object we send to the router via the stub.
-// 	a := pb.DiscardChangesArgs{ReqId: id}
-
-// 	// 'r' is the result that comes back from the target.
-// 	r, err := c.ConfigDiscardChanges(context.Background(), &a)
-// 	if err != nil {
-// 		return -1, errors.Wrap(err, "gRPC ConfigDiscardChanges failed")
-// 	}
-// 	if len(r.GetErrors()) != 0 {
-// 		si := strconv.FormatInt(id, 10)
-// 		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
-// 	}
-// 	return r.ResReqId, nil
-// }
 
 // MergeConfig configs the target with YANG/JSON config specified in 'js'.
 func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) (int64, error) {
@@ -448,7 +427,7 @@ func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64
 	// 'r' is the result that comes back from the target.
 	r, err := c.MergeConfig(ctx, &a)
 	if err != nil {
-		return -1, errors.Wrap(err, "gRPC MergeConfig failed")
+		return -1, fmt.Errorf("gRPC MergeConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
@@ -469,7 +448,7 @@ func DeleteConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int6
 	// 'r' is the result that comes back from the target.
 	r, err := c.DeleteConfig(ctx, &a)
 	if err != nil {
-		return -1, errors.Wrap(err, "gRPC DeleteConfig failed")
+		return -1, fmt.Errorf("gRPC DeleteConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
@@ -490,7 +469,7 @@ func ReplaceConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int
 	// 'r' is the result that comes back from the target.
 	r, err := c.ReplaceConfig(ctx, &a)
 	if err != nil {
-		return -1, errors.Wrap(err, "gRPC ReplaceConfig failed")
+		return -1, fmt.Errorf("gRPC ReplaceConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
 		si := strconv.FormatInt(id, 10)
@@ -515,7 +494,7 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 	// 'r' is the result that comes back from the target.
 	st, err := c.CreateSubs(ctx, &a)
 	if err != nil {
-		return b, e, errors.Wrap(err, "gRPC CreateSubs failed")
+		return b, e, fmt.Errorf("gRPC CreateSubs failed: %w", err)
 	}
 	si := strconv.FormatInt(id, 10)
 

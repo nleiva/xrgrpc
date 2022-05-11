@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"errors"
 
 	xr "github.com/nleiva/xrgrpc"
 	pb "github.com/nleiva/xrgrpc/proto/ems"
-	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
