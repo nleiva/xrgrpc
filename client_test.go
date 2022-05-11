@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 	"errors"
+	"context"
 
 	xr "github.com/nleiva/xrgrpc"
 	pb "github.com/nleiva/xrgrpc/proto/ems"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -40,7 +40,7 @@ const (
 )
 
 // execServer implements the GRPCExecServer interface
-type execServer struct{}
+type execServer struct{pb.UnimplementedGRPCExecServer}
 
 func (s *execServer) ShowCmdTextOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_ShowCmdTextOutputServer) error {
 	if a.GetCli() != defaultCmd {
@@ -89,34 +89,34 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 	return nil
 }
 
-func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
-	if a.GetYangpathjson() != defaultYang {
-		err := stream.Send(&pb.ActionJSONReply{
-			ResReqId: a.GetReqId(),
-			Errors:   wrongCmdErr,
-		})
-		if err != nil {
-			return err
-		}
-		return errors.New(wrongCmdErr)
-	}
-	m := map[string]string{"result": "action test output"}
-	j, err := json.Marshal(m)
-	if err != nil {
-		return errors.New("could not encode the test response")
-	}
-	err = stream.Send(&pb.ActionJSONReply{
-		ResReqId: a.GetReqId(),
-		Yangjson: string(j),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
+// 	if a.GetYangpathjson() != defaultYang {
+// 		err := stream.Send(&pb.ActionJSONReply{
+// 			ResReqId: a.GetReqId(),
+// 			Errors:   wrongCmdErr,
+// 		})
+// 		if err != nil {
+// 			return err
+// 		}
+// 		return errors.New(wrongCmdErr)
+// 	}
+// 	m := map[string]string{"result": "action test output"}
+// 	j, err := json.Marshal(m)
+// 	if err != nil {
+// 		return errors.New("could not encode the test response")
+// 	}
+// 	err = stream.Send(&pb.ActionJSONReply{
+// 		ResReqId: a.GetReqId(),
+// 		Yangjson: string(j),
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // operConfigServer implements the GRPCConfigOperServer interface
-type operConfigServer struct{}
+type operConfigServer struct{pb.UnimplementedGRPCConfigOperServer}
 
 func (s *operConfigServer) GetConfig(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetConfigServer) error {
 	if a.GetYangpathjson() != defaultYang {
@@ -211,8 +211,8 @@ func (s *operConfigServer) CommitReplace(ctx context.Context, a *pb.CommitReplac
 
 // CommitConfig commits a config. Need to clarify its use-case.
 func (s *operConfigServer) CommitConfig(ctx context.Context, a *pb.CommitArgs) (r *pb.CommitReply, err error) {
-	Msg := pb.CommitMsg{Label: "test", Comment: "test"}
-	if *a.GetMsg() != Msg {
+	Msg := "test"
+	if a.GetMsg().Comment != Msg {
 		err = errors.New(wrongCmdErr)
 		r = &pb.CommitReply{
 			Result:   pb.CommitResult_FAIL,
@@ -233,7 +233,7 @@ func (s *operConfigServer) ConfigDiscardChanges(context.Context, *pb.DiscardChan
 	return nil, nil
 }
 
-func (s *operConfigServer) GetOper(a *pb.GetOperArgs, stream pb.GRPCConfigOper_GetOperServer) error {
+func (s *operConfigServer) GetOper(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetOperServer) error {
 	if a.GetYangpathjson() != defaultYang {
 		err := stream.Send(&pb.GetOperReply{
 			ResReqId: a.GetReqId(),
@@ -625,47 +625,47 @@ func TestShowCmdJSONOutput(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 }
 
-func TestActionJSONOutput(t *testing.T) {
-	x := xr.CiscoGrpcClient{
-		User:     defaultUser,
-		Password: defaultPass,
-		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
-		Cert:     defaultCert,
-		Domain:   "localhost",
-		Timeout:  defaultTimeout,
-	}
-	tt := []struct {
-		name string
-		act  string
-		err  string
-	}{
-		{name: "local connection", act: defaultYang},
-		{name: "wrong command", act: wrongCmd, err: wrongCmdErr},
-	}
-	s := Server(t, "exec")
-	conn, ctx, err := xr.Connect(x)
-	if err != nil {
-		t.Fatalf("could not setup a client connection to %v", x.Host)
-	}
-	var id int64 = 1
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			_, err := xr.ActionJSON(ctx, conn, tc.act, id)
-			if err != nil {
-				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
-					return
-				}
-				t.Fatalf("failed to get action json output from %v", x.Host)
-			}
-		})
-		id++
-	}
-	conn.Close()
-	s.Stop()
-	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
-	// reports 'bind: address already in use' when trying to run the next function test
-	time.Sleep(200 * time.Millisecond)
-}
+// func TestActionJSONOutput(t *testing.T) {
+// 	x := xr.CiscoGrpcClient{
+// 		User:     defaultUser,
+// 		Password: defaultPass,
+// 		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+// 		Cert:     defaultCert,
+// 		Domain:   "localhost",
+// 		Timeout:  defaultTimeout,
+// 	}
+// 	tt := []struct {
+// 		name string
+// 		act  string
+// 		err  string
+// 	}{
+// 		{name: "local connection", act: defaultYang},
+// 		{name: "wrong command", act: wrongCmd, err: wrongCmdErr},
+// 	}
+// 	s := Server(t, "exec")
+// 	conn, ctx, err := xr.Connect(x)
+// 	if err != nil {
+// 		t.Fatalf("could not setup a client connection to %v", x.Host)
+// 	}
+// 	var id int64 = 1
+// 	for _, tc := range tt {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			_, err := xr.ActionJSON(ctx, conn, tc.act, id)
+// 			if err != nil {
+// 				if strings.Contains(err.Error(), wrongCmdErr) && tc.err == wrongCmdErr {
+// 					return
+// 				}
+// 				t.Fatalf("failed to get action json output from %v", x.Host)
+// 			}
+// 		})
+// 		id++
+// 	}
+// 	conn.Close()
+// 	s.Stop()
+// 	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+// 	// reports 'bind: address already in use' when trying to run the next function test
+// 	time.Sleep(200 * time.Millisecond)
+// }
 
 func TestGetConfig(t *testing.T) {
 	x := xr.CiscoGrpcClient{

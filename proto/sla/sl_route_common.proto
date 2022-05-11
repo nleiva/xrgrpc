@@ -15,7 +15,7 @@
 //@brief Route service definitions.
 
 syntax = "proto3";
-package service_layer;
+option go_package = "./service_layer";
 
 import "sl_common_types.proto";
 

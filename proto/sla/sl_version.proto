@@ -9,7 +9,7 @@
 //
 
 syntax = "proto3";
-package service_layer;
+option go_package = "./service_layer";
 
 // @addtogroup SLVersion
 // @ingroup Common

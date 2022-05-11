@@ -12,7 +12,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 	lldp "github.com/nleiva/xrgrpc/proto/telemetry/lldp"
@@ -110,28 +110,28 @@ func main() {
 
 		for _, row := range message.GetDataGpb().GetRow() {
 			// From GPB we have row.GetTimestamp(), row.GetKeys() and row.GetContent()
-			keys := new(lldp.LldpNeighbor_KEYS)
+			keys := new(lldp.LldpNeighborEntry_KEYS)
 			output, err := decodeKeys(row.GetKeys(), keys)
 			if err != nil {
 				log.Fatalf("could decode Keys: %v\n", err)
 			}
 			fmt.Println(output)
 			content := row.GetContent()
-			nbrs := new(lldp.LldpNeighbor)
+			nbrs := new(lldp.LldpNeighborEntry)
 			err = proto.Unmarshal(content, nbrs)
 			if err != nil {
 				log.Fatalf("could decode Content: %v\n", err)
 			}
 			for _, nei := range nbrs.LldpNeighbor {
 				n := nei.GetDetail()
-				a := n.GetNetworkAddresses().GetLldpAddrEntry()[0].Address.GetIpv6Address()
+				a := n.GetNetworkAddresses().GetLldpAddrEntry()[0].Address.GetIPv6Address()
 				fmt.Printf("Type: %s, Address %s \n\n", n.GetSystemDescription(), a)
 			}
 		}
 	}
 }
 
-func decodeKeys(bk []byte, k *lldp.LldpNeighbor_KEYS) (string, error) {
+func decodeKeys(bk []byte, k *lldp.LldpNeighborEntry_KEYS) (string, error) {
 	err := proto.Unmarshal(bk, k)
 	s := ""
 	if err != nil {

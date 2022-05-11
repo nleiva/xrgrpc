@@ -48,11 +48,6 @@ The end goal is to enable use-cases where multiple interactions with devices are
     + [Service Layer API](#service-layer-api)
       - [Add an IPv6 route](#add-an-ipv6-route)
       - [SLA IOS XR config](#sla-ios-xr-config)
-    + [Actions](#actions)
-      - [Ping](#ping)
-      - [Traceroute](#traceroute)
-      - [Log Generation](#log-generation)
-      - [Crypto Key Generation](#crypto-key-generation)
     + [Bypass the config file](#bypass-the-config-file)
   * [XR gRPC Config](#xr-grpc-config)
     + [Port range](#port-range)
@@ -72,28 +67,48 @@ CLI examples to use the library are provided in the [example](example/) folder. 
 
 Retrieves the config from one target device described in [config.json](example/input/config.json), for the YANG paths specified in [yangpaths.json](example/input/yangpaths.json). If you want to see it using [OpenConfig models](https://github.com/openconfig/public/tree/master/release/models), you can issue `./getconfig -ypath "../input/yangocpaths.json"` instead.
 
-- example/getconfig
+- `example/getconfig`
 
 ```console
-$ ./getconfig
+example/getconfig$  go run main.go 
 
-Config from [2001:420:2cff:1204::5502:1]:57344
-{
+config from sandbox-iosxr-1.cisco.com:57777
+ {
  "data": {
-  "Cisco-IOS-XR-ifmgr-cfg:interface-configurations": {
-   "interface-configuration": [
+  "openconfig-interfaces:interfaces": {
+   "interface": [
     {
-     "active": "act",
-     "interface-name": "Loopback60",
-     "interface-virtual": [
-      null
-     ],
-     "Cisco-IOS-XR-ipv6-ma-cfg:ipv6-network": {
-      "addresses": {
-       "regular-addresses": {
-        "regular-address": [
+     "name": "BVI511",
+     "config": {
+      "name": "BVI511",
+      "type": "iana-if-type:propVirtual"
+     },
+     "subinterfaces": {
+      "subinterface": [
+       {
+        "index": 0,
+        "openconfig-if-ip:ipv4": {
+         "addresses": {
+          "address": [
+           {
+            "ip": "10.200.188.33",
+            "config": {
+             "ip": "10.200.188.33",
+             "prefix-length": 24
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+
 ...
-2017/07/21 15:11:47 This process took 1.195469855s
+
+2022/05/11 16:55:36 This process took 715.136564ms
 ```
 
 ### Show Commands
@@ -754,6 +769,8 @@ grpc
 
 ### Actions
 
+>*NOTE*: Support for actions has been deprecated on XR, most likely in favor of gNOI.
+
 There are multiple actions than can be triggered via gRPC on IOS XR devices running 6.3.1 or later. Below the YANG models supported to the date and some examples using this library.
 
 ```console
@@ -1001,18 +1018,39 @@ $ openssl req -new -x509 -nodes -subj '/C=US/CN=localhost' \
 
 The Go generated code in [ems_grpc.pb.go](proto/ems/ems_grpc.pb.go) is the result of the following:
 
-- proto/ems
+- `proto/ems`
 
 ```console
-$ protoc --go_out=plugins=grpc:. ems_grpc.proto
+$ protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    --go_opt=Mproto/ems/ems_grpc.proto=proto/ems \
+    --go-grpc_opt=Mproto/ems/ems_grpc.proto=proto/ems \
+    proto/ems/ems_grpc.proto
 ```
 
-The Go generated code in [bgp_nbr_bag.pb.go](proto/telemetry/bgp/bgp_nbr_bag.pb.go) is the result of the following:
+- The Go generated code in [bgp_nbr_bag.pb.go](proto/telemetry/bgp/bgp_nbr_bag.pb.go) is the result of the following:
 
 ```console
-protoc --go_out=. \
-  --go_opt=Mproto/telemetry/bgp/bgp_nbr_bag.proto=proto/telemetry/bgp \
-  proto/telemetry/bgp/bgp_nbr_bag.proto
+$ protoc --go_out=. \
+    --go_opt=Mproto/telemetry/bgp/bgp_nbr_bag.proto=proto/telemetry/bgp \
+    proto/telemetry/bgp/bgp_nbr_bag.proto
+```
+
+- The Go generated code in [lldp_neighbor.pb.go](proto/telemetry/lldp/lldp_neighbor.pb.go) is the result of the following:
+
+```console
+$ protoc --go_out=. \
+    --go_opt=Mproto/telemetry/lldp/lldp_neighbor.proto=proto/telemetry/lldp \
+    proto/telemetry/lldp/lldp_neighbor.proto
+```
+
+- `proto/sla`
+
+```console
+$ cd proto/sla
+$ protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    *.proto
 ```
 
 ## Running the Examples

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"context"
+	"errors"
 
 	pb "github.com/nleiva/xrgrpc/proto/sla"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -50,7 +50,7 @@ func VRFOperation(conn *grpc.ClientConn, o int, d uint32) error {
 	// 'r' is the result that comes back from the target.
 	r, err := c.SLRoutev6VrfRegOp(context.Background(), &a)
 	if err != nil {
-		return errors.Wrap(err, "gRPC SLRoutev6VrfRegOp failed")
+		return fmt.Errorf("gRPC SLRoutev6VrfRegOp failed: %w", err)
 	}
 
 	//	SL_SUCCESS: Entire bulk operation was successful.
@@ -74,7 +74,7 @@ func SetRoute(conn *grpc.ClientConn, o int, ad string, d uint32, nh string) erro
 	//intf := "HundredGigE0/0/0/1"
 	_, nw, err := net.ParseCIDR(ad)
 	if err != nil {
-		return errors.Errorf("Could not parse address: %s", ad)
+		return fmt.Errorf("Could not parse address: %w", err)
 	}
 	mk, _ := nw.Mask.Size()
 
@@ -122,7 +122,7 @@ func SetRoute(conn *grpc.ClientConn, o int, ad string, d uint32, nh string) erro
 	// 'r' is the result that comes back from the target.
 	r, err := c.SLRoutev6Op(context.Background(), &a)
 	if err != nil {
-		return errors.Wrap(err, "gRPC SLRoutev6Op failed")
+		return fmt.Errorf("gRPC SLRoutev6Op failed: %w", err)
 	}
 
 	//	SL_SUCCESS: Entire bulk operation was successful.
@@ -157,7 +157,7 @@ func ClientInit(conn *grpc.ClientConn) error {
 	// 'r' is the result that comes back from the target.
 	_, err := c.SLGlobalsGet(context.Background(), &a)
 	if err != nil {
-		return errors.Wrap(err, "gRPC SLGlobalsGet failed")
+		return fmt.Errorf("gRPC SLGlobalsGet failed: %w", err)
 	}
 	return nil
 }

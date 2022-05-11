@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 	"errors"
+	"context"
 
 	pb "github.com/nleiva/xrgrpc/proto/ems"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -258,35 +258,35 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 }
 
 // ActionJSON returns the output of an action commands as a JSON structured output.
-func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) (string, error) {
-	var s string
-	// 'c' is the gRPC stub.
-	c := pb.NewGRPCExecClient(conn)
+// func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) (string, error) {
+// 	var s string
+// 	// 'c' is the gRPC stub.
+// 	c := pb.NewGRPCExecClient(conn)
 
-	// 'a' is the object we send to the router via the stub.
-	a := pb.ActionJSONArgs{ReqId: id, Yangpathjson: j}
+// 	// 'a' is the object we send to the router via the stub.
+// 	a := pb.ActionJSONArgs{ReqId: id, Yangpathjson: j}
 
-	// 'st' is the streamed result that comes back from the target.
-	st, err := c.ActionJSON(context.Background(), &a)
-	if err != nil {
-		return s, fmt.Errorf("gRPC ActionJSON failed: %w", err)
-	}
+// 	// 'st' is the streamed result that comes back from the target.
+// 	st, err := c.ActionJSON(context.Background(), &a)
+// 	if err != nil {
+// 		return s, fmt.Errorf("gRPC ActionJSON failed: %w", err)
+// 	}
 
-	for {
-		// Loop through the responses in the stream until there is nothing left.
-		r, err := st.Recv()
-		if err == io.EOF {
-			return s, nil
-		}
-		if len(r.GetErrors()) != 0 {
-			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
-		}
-		if len(r.GetYangjson()) > 0 {
-			s += r.GetYangjson()
-		}
-	}
-}
+// 	for {
+// 		// Loop through the responses in the stream until there is nothing left.
+// 		r, err := st.Recv()
+// 		if err == io.EOF {
+// 			return s, nil
+// 		}
+// 		if len(r.GetErrors()) != 0 {
+// 			si := strconv.FormatInt(id, 10)
+// 			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+// 		}
+// 		if len(r.GetYangjson()) > 0 {
+// 			s += r.GetYangjson()
+// 		}
+// 	}
+// }
 
 // ShowCmdJSONOutput returns the output of a CLI show commands
 // as a JSON structured output.

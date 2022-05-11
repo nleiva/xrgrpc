@@ -1,12 +1,9 @@
 syntax = "proto3";
 
-// Package implements gRPC Model Driven Telemetry service
 package IOSXRExtensibleManagabilityService;
 
 service gRPCConfigOper {
    
-    // Configuration related commands
-
     rpc GetConfig(ConfigGetArgs) returns(stream ConfigGetReply) {};
         
     rpc MergeConfig(ConfigArgs) returns(ConfigReply) {};
@@ -19,32 +16,27 @@ service gRPCConfigOper {
 
     rpc CommitReplace(CommitReplaceArgs) returns (CommitReplaceReply) {};
 
-    // Do we need implicit or explicit commit
-    //
     rpc CommitConfig(CommitArgs) returns(CommitReply) {};
 
     rpc ConfigDiscardChanges(DiscardChangesArgs) returns(DiscardChangesReply) {};
 
-    // Get only returns oper data
-    // 
-    rpc GetOper(GetOperArgs) returns(stream GetOperReply) {};
+    rpc GetOper(ConfigGetArgs) returns(stream GetOperReply) {};
     // Do we need "Get" also to give combined oper and config?
 
     // Get Telemetry Data
     rpc CreateSubs(CreateSubsArgs) returns(stream CreateSubsReply) {};
 }
 
-//
-// Should we seperate Exec from Config/Oper?
-//
-
 service gRPCExec {
 // Exec commands
     rpc ShowCmdTextOutput(ShowCmdArgs) returns(stream ShowCmdTextReply) {};
     rpc ShowCmdJSONOutput(ShowCmdArgs) returns(stream ShowCmdJSONReply) {};
-    //rpc ActionCLI(ActionCliArgs) returns(stream ActionCliReply) {};
-    rpc ActionJSON(ActionJSONArgs) returns(stream ActionJSONReply) {};
+}
 
+service OpenConfiggRPC {
+    rpc SubscribeTelemetry(SubscribeRequest) returns (stream SubscribeResponse) {};
+    rpc UnSubscribeTelemetry(CancelSubscribeReq) returns (SubscribeResponse) {};
+    rpc GetModels(GetModelsInput) returns (GetModelsOutput) {};
 }
 
 message ConfigGetArgs {
@@ -56,11 +48,6 @@ message ConfigGetReply {
     int64 ResReqId = 1;
     string yangjson = 2;
     string errors = 3;
-}
-
-message GetOperArgs {
-     int64 ReqId = 1;
-     string yangpathjson = 2;
 }
 
 message GetOperReply {
@@ -162,24 +149,101 @@ message CreateSubsReply {
     bytes data = 2;
     string errors = 3;
 }
-// message ActionCliArgs {
-//    int64 ReqId = 1;
-//    string cli  = 2;
-// }
- 
-// message ActionCliReply {
-//    int64 ResReqId = 1;
-//    string output  = 2;
-//    string errors  = 3;
-// }
- 
-message ActionJSONArgs {
-    int64 ReqId         = 1;
-    string yangpathjson = 2;
+
+message SubscribeRequest {
+    int64 ReqId = 1;
+    oneof request {
+        SubscriptionList subscribe = 2;
+    }
 }
- 
-message ActionJSONReply {
-   int64 ResReqId  = 1;
-   string yangjson = 2;
-   string errors   = 3;
+
+message TelemetryStreamDestination {
+    string destination_address = 1;
+    uint32 destination_port = 2;
+    enum TSP {
+       TSP_TCP = 0;
+       TSP_GRPC = 1;
+    }
+    TSP telemetry_stream_protocol = 3;
+}
+
+message TelemetryPath {
+    string Path = 1;
+}
+
+message SubscriptionList {
+    repeated TelemetryStreamDestination TelemetryStreamDestinations = 1;
+    repeated TelemetryPath TelemetryPaths = 2;
+    uint64 sample_interval = 3;
+    enum ENC_SPEC {
+       ENC_KV_GPB = 0;
+       ENC_GPB = 1;
+    }
+    ENC_SPEC encoding = 4;
+}
+enum OC_RPC_RESPONSE_TYPE {
+    OK = 0;
+    NOK = 1;
+    UNSUPPORTED_PATH = 2;
+    INVALID_PATH = 3;
+    INVALID_CONFIGURATION = 4;
+    UNSUPPORTED_INTERVAL = 5;
+    UNSUPPORTED_ENCODING = 6;
+    INVALID_SUBSCRIPTION_ID = 7;
+}
+
+message StatusResponse {
+    string message_json = 1;
+    OC_RPC_RESPONSE_TYPE code = 2;
+}
+
+message Notification {
+   bytes data = 1;
+}
+
+message SubscribeResponse {
+    int64 ResReqId = 1;
+    uint64 subscription_id = 2;
+    oneof response {
+        Notification update = 3;
+        StatusResponse status = 4;
+    }
+}
+
+message CancelSubscribeReq {
+    int64 ReqId = 1;
+    uint64 subscription_id = 2;
+}
+
+enum GET_MODEL_TYPE {
+    MODULE       = 0;
+    AUGMENTATION = 1;
+    DEVIATION    = 2;
+    BUNDLE       = 3;
+}
+
+message GetModelsInput {
+    uint64  requestId   = 1;
+    string  name        = 2;
+    string  namespace   = 3;
+    string  version     = 4;
+    enum MODLE_REQUEST_TYPE {
+        SUMMARY = 0;
+        DETAIL  = 1;
+    }
+    MODLE_REQUEST_TYPE requestType = 5;    
+}
+
+message GetModelsOutput {
+    uint64  requestId   = 1;
+    message ModelInfo {
+        string  name        = 1;
+        string  namespace   = 2;
+        string  version     = 3;
+        GET_MODEL_TYPE  modelType = 4;
+        string modelData = 5;
+    }
+    repeated ModelInfo models = 2;
+    OC_RPC_RESPONSE_TYPE responseCode = 3;
+    string msg = 4;
 }
