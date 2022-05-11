@@ -12,10 +12,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
-	lldp "github.com/nleiva/xrgrpc/proto/telemetry/lldp65x"
+	lldp "github.com/nleiva/xrgrpc/proto/telemetry/lldp"
 )
 
 func prettyprint(b []byte) ([]byte, error) {

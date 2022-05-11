@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 )
