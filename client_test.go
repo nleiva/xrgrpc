@@ -434,6 +434,7 @@ func TestConnect(t *testing.T) {
 		{name: "wrong target", target: "192.168.0.1:57344", err: "TBD"},
 		{name: "wrong certificate", certf: "example/input/certificate/ems5502-1.pem", err: "TBD"},
 		{name: "inexistent certificate", certf: "dummy", err: "TBD"},
+		{name: "No certificate", certf: ""},
 	}
 	s := Server(t, "none")
 
