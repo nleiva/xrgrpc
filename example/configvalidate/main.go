@@ -96,8 +96,10 @@ func main() {
 
 	// Get the BGP config from the device
 	id++
-	//output, err := xr.GetConfig(ctx, conn, "{\"openconfig-network-instance:network-instances\" : [\"default\"]}", id)
-	output, err := xr.GetConfig(ctx, conn, "{\"openconfig-network-instance:network-instances/protocols/protocol\" : [\"bgp\"]}", id)
+	input := `{"openconfig-network-instance:network-instances":
+	{"network-instance":[{"name":"default","protocols":{"protocol":[{"bgp":{}}]}}]}}`
+	
+	output, err := xr.GetConfig(ctx, conn, input, id)
 
 	if err != nil {
 		log.Fatalf("could not get the config from %s, %v", router.Host, err)
