@@ -2,14 +2,14 @@
 package xrgrpc_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
 	"testing"
 	"time"
-	"errors"
-	"context"
 
 	xr "github.com/nleiva/xrgrpc"
 	pb "github.com/nleiva/xrgrpc/proto/ems"
@@ -40,7 +40,7 @@ const (
 )
 
 // execServer implements the GRPCExecServer interface
-type execServer struct{pb.UnimplementedGRPCExecServer}
+type execServer struct{ pb.UnimplementedGRPCExecServer }
 
 func (s *execServer) ShowCmdTextOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_ShowCmdTextOutputServer) error {
 	if a.GetCli() != defaultCmd {
@@ -116,7 +116,9 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 // }
 
 // operConfigServer implements the GRPCConfigOperServer interface
-type operConfigServer struct{pb.UnimplementedGRPCConfigOperServer}
+type operConfigServer struct {
+	pb.UnimplementedGRPCConfigOperServer
+}
 
 func (s *operConfigServer) GetConfig(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetConfigServer) error {
 	if a.GetYangpathjson() != defaultYang {

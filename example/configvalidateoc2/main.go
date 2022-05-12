@@ -17,9 +17,9 @@ import (
 	"os/signal"
 	"time"
 
-	"google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
+	"google.golang.org/protobuf/proto"
 )
 
 // Colors, just for fun.

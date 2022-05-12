@@ -12,9 +12,9 @@ import (
 	"os/signal"
 	"time"
 
-	proto "google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
+	proto "google.golang.org/protobuf/proto"
 )
 
 func prettyprint(b []byte) ([]byte, error) {

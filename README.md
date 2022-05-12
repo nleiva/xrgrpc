@@ -744,35 +744,10 @@ Cisco-IOS-XR-ipv4-bgp-act.yang
 Cisco-IOS-XR-ipv4-ospf-act.yang
 Cisco-IOS-XR-ipv4-ping-act.yang
 Cisco-IOS-XR-ipv4-traceroute-act.yang
-Cisco-IOS-XR-ipv6-ospfv3-act.yang
-Cisco-IOS-XR-ipv6-ping-act.yang
-Cisco-IOS-XR-ipv6-traceroute-act.yang
-Cisco-IOS-XR-isis-act.yang
-Cisco-IOS-XR-lib-keychain-act.yang
-Cisco-IOS-XR-ping-act.yang
-Cisco-IOS-XR-snmp-test-trap-act.yang
-Cisco-IOS-XR-syslog-act.yang
-Cisco-IOS-XR-sysmgr-act.yang
-Cisco-IOS-XR-traceroute-act.yang
-Cisco-IOS-XR-upgrade-fpd-ng-act.yang
+...
 ```
 
 #### Ping
-
-- IPv4 Ping (`example/action` with [ping4.json](example/input/action/ping4.json))
-
-```console
-$ ./action -act "../input/action/ping4.json"
-
-output from [2001:420:2cff:1204::7816:1]:57344
- {
- "Cisco-IOS-XR-ping-act:output": {...}
-}
-
-2018/05/29 15:03:19 This process took 762.440427ms
-```
-
-![ipv4-ping](https://github.com/nleiva/xrgrpc/blob/gh-pages/static/images/ipv4_ping.svg)
 
 - IPv6 Ping (`example/action` with [ping6.json](example/input/action/ping6.json))
 
@@ -928,12 +903,16 @@ router, err := xr.BuildRouter(
 The following is the configuration required on the IOS XR device in order to enable gRPC dial-in with TLS support.
 
 ```
-!! IOS XR Configuration version = 6.2.2
-grpc
- port 57344
- tls
+tpa
+ vrf default
+  address-family ipv4
+   default-route mgmt
+  !
  !
- address-family ipv6
+!
+grpc
+ port 57777
+ address-family ipv4
 !
 ```
 
@@ -949,21 +928,7 @@ mrstn-5502-1 emsd: [1058]: %MGBL-EMS-4-EMSD_PORT_RANGE : The configured port 565
 
 Update 6/24/2019: You no longer need to download the certicate file manually. If you don't specify a file, it will be downloaded automatically as in the [getconfig](example/getconfig/main.go) example.
 
-You can optionally retrive the `ems.pem` file from the IOS XR device (after enabling gRPC/TLS) and put it in the [input](example/input) folder (or any other location specified in [config.json](example/input/config.json)). You can find the file in the router on either `/misc/config/grpc/` or `/var/xr/config/grpc`.
-
-- /var/xr/config/grpc
-
-```console
-$ ls -la
-total 20
-drwxr-xr-x  3 root root 4096 Jul  5 17:47 .
-drwxr-xr-x 10 root root 4096 Jul  3 12:50 ..
-drwx------  2 root root 4096 Jul  3 12:50 dialout
--rw-------  1 root root 1675 Jul  5 17:47 ems.key
--rw-rw-rw-  1 root root 1513 Jul  5 17:47 ems.pem
-```
-
-### Self-signed certificate for testing
+### Self-signed certificate for package testing
 
 This needs to be renewed once a year.
 
@@ -1004,7 +969,7 @@ $ protoc --go_out=. \
     proto/telemetry/lldp/lldp_neighbor.proto
 ```
 
-## Running the Examples
+## Running the examples
 
 After cloning the repo, go the a folder example and execute `go run main.go`. For example:
 

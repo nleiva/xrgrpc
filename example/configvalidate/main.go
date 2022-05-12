@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/protobuf/proto"
 	xr "github.com/nleiva/xrgrpc"
 	"github.com/nleiva/xrgrpc/proto/telemetry"
 	bgp "github.com/nleiva/xrgrpc/proto/telemetry/bgp"
+	"google.golang.org/protobuf/proto"
 )
 
 // NeighborConfig uses asplain notation for AS numbers (RFC5396)
@@ -98,7 +98,7 @@ func main() {
 	id++
 	input := `{"openconfig-network-instance:network-instances":
 	{"network-instance":[{"name":"default","protocols":{"protocol":[{"bgp":{}}]}}]}}`
-	
+
 	output, err := xr.GetConfig(ctx, conn, input, id)
 
 	if err != nil {

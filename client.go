@@ -1,19 +1,20 @@
 package xrgrpc
 
 import (
+	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strconv"
 	"time"
-	"errors"
-	"context"
 
 	pb "github.com/nleiva/xrgrpc/proto/ems"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // CiscoGrpcClient identifies the parameters for gRPC session setup.
@@ -39,7 +40,7 @@ func NewDevices() *Devices {
 // RouterOption is a funcion that sets one or more options for a given target.
 type RouterOption func(r *CiscoGrpcClient) error
 
-// BuildRouter is a traget constructor with options.
+// BuildRouter is a target constructor with options.
 func BuildRouter(opts ...RouterOption) (*CiscoGrpcClient, error) {
 	var router CiscoGrpcClient
 	for _, opt := range opts {
@@ -140,18 +141,6 @@ func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) 
 	skipVerify := true
 	xr.Domain = "ems.cisco.com"
 
-	// certPool := x509.NewCertPool()
-
-	// Add CA cert. FILE LOCATION CANNOT BE HARDCODED!!!!
-	/* 	file := "../input/certificate/ca.cert"
-	   	b, err := ioutil.ReadFile(file)
-	   	if err != nil {
-	   		return nil, fmt.Errorf("problem reading CA file %s: %s", file, err)
-	   	}
-
-	   	if !certPool.AppendCertsFromPEM(b) {
-	   		return nil, fmt.Errorf("failed to append CA certificate")
-	   	} */
 	config := &tls.Config{
 		// ServerName:         xr.Domain,
 		InsecureSkipVerify: skipVerify,
@@ -174,10 +163,9 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
 
-	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
-	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(2000)))
-	opts = append(opts, grpc.WithBlock())
+	// grpc.WithTimeout is deprecated
+	// opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
+	// opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
@@ -201,10 +189,9 @@ func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, err
 	// opts holds the config options to set up the connection.
 	var opts []grpc.DialOption
 
-	// WithTimeout returns a DialOption that configures a timeout for dialing a ClientConn initially.
-	// This is valid if and only if WithBlock() is present
-	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
-	opts = append(opts, grpc.WithBlock())
+	// grpc.WithTimeout is deprecated
+	// opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
+	// opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
@@ -216,7 +203,7 @@ func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, err
 		requireTLS: false}))
 
 	// Allow sending the credentials without TSL
-	opts = append(opts, grpc.WithInsecure())
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	// conn represents a client connection to an RPC server (target).
 	conn, err := grpc.DialContext(ctx, xr.Host, opts...)
@@ -236,7 +223,7 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	a := pb.ShowCmdArgs{ReqId: id, Cli: cli}
 
 	// 'st' is the streamed result that comes back from the target.
-	st, err := c.ShowCmdTextOutput(context.Background(), &a)
+	st, err := c.ShowCmdTextOutput(ctx, &a)
 	if err != nil {
 		return s, fmt.Errorf("gRPC ShowCmdTextOutput failed: %w", err)
 	}
@@ -257,37 +244,6 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	}
 }
 
-// ActionJSON returns the output of an action commands as a JSON structured output.
-// func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) (string, error) {
-// 	var s string
-// 	// 'c' is the gRPC stub.
-// 	c := pb.NewGRPCExecClient(conn)
-
-// 	// 'a' is the object we send to the router via the stub.
-// 	a := pb.ActionJSONArgs{ReqId: id, Yangpathjson: j}
-
-// 	// 'st' is the streamed result that comes back from the target.
-// 	st, err := c.ActionJSON(context.Background(), &a)
-// 	if err != nil {
-// 		return s, fmt.Errorf("gRPC ActionJSON failed: %w", err)
-// 	}
-
-// 	for {
-// 		// Loop through the responses in the stream until there is nothing left.
-// 		r, err := st.Recv()
-// 		if err == io.EOF {
-// 			return s, nil
-// 		}
-// 		if len(r.GetErrors()) != 0 {
-// 			si := strconv.FormatInt(id, 10)
-// 			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
-// 		}
-// 		if len(r.GetYangjson()) > 0 {
-// 			s += r.GetYangjson()
-// 		}
-// 	}
-// }
-
 // ShowCmdJSONOutput returns the output of a CLI show commands
 // as a JSON structured output.
 func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, id int64) (string, error) {
@@ -299,7 +255,7 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 	a := pb.ShowCmdArgs{ReqId: id, Cli: cli}
 
 	// 'st' is the streamed result that comes back from the target.
-	st, err := c.ShowCmdJSONOutput(context.Background(), &a)
+	st, err := c.ShowCmdJSONOutput(ctx, &a)
 	if err != nil {
 		return s, fmt.Errorf("gRPC ShowCmdJSONOutput failed: %w", err)
 	}
@@ -331,7 +287,7 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 	a := pb.ConfigGetArgs{ReqId: id, Yangpathjson: js}
 
 	// 'st' is the streamed result that comes back from the target.
-	st, err := c.GetConfig(context.Background(), &a)
+	st, err := c.GetConfig(ctx, &a)
 	if err != nil {
 		return s, fmt.Errorf("gRPC GetConfig failed: %w", err)
 	}
@@ -385,7 +341,7 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id i
 	a := pb.CommitArgs{Msg: &m, ReqId: id}
 
 	// 'r' is the result that comes back from the target.
-	r, err := c.CommitConfig(context.Background(), &a)
+	r, err := c.CommitConfig(ctx, &a)
 	if err != nil {
 		return s, fmt.Errorf("gRPC CommitConfig failed: %w", err)
 	}
@@ -406,7 +362,7 @@ func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, i
 	a := pb.CommitReplaceArgs{Cli: cli, Yangjson: js, ReqId: id}
 
 	// 'r' is the result that comes back from the target.
-	r, err := c.CommitReplace(context.Background(), &a)
+	r, err := c.CommitReplace(ctx, &a)
 	if err != nil {
 		return fmt.Errorf("gRPC CommitReplace failed: %w", err)
 	}
