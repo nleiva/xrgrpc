@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"strconv"
 	"time"
 
 	pb "github.com/nleiva/xrgrpc/proto/ems"
@@ -163,10 +162,6 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// Add TLS credentials to config options array.
 	opts = append(opts, grpc.WithTransportCredentials(creds))
 
-	// grpc.WithTimeout is deprecated
-	// opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
-	// opts = append(opts, grpc.WithBlock())
-
 	// Add gRPC overall timeout to the config options array.
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
 
@@ -188,10 +183,6 @@ func Connect(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 func ConnectInsecure(xr CiscoGrpcClient) (*grpc.ClientConn, context.Context, error) {
 	// opts holds the config options to set up the connection.
 	var opts []grpc.DialOption
-
-	// grpc.WithTimeout is deprecated
-	// opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(1500)))
-	// opts = append(opts, grpc.WithBlock())
 
 	// Add gRPC overall timeout to the config options array.
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*time.Duration(xr.Timeout))
@@ -235,11 +226,40 @@ func ShowCmdTextOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 			return s, nil
 		}
 		if len(r.GetErrors()) != 0 {
-			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 		}
 		if len(r.GetOutput()) > 0 {
 			s += r.GetOutput()
+		}
+	}
+}
+
+// ActionJSON returns the output of an action commands as a JSON structured output.
+func ActionJSON(ctx context.Context, conn *grpc.ClientConn, j string, id int64) (string, error) {
+	var s string
+	// 'c' is the gRPC stub.
+	c := pb.NewGRPCExecClient(conn)
+
+	// 'a' is the object we send to the router via the stub.
+	a := pb.ActionJSONArgs{ReqId: id, Yangpathjson: j}
+
+	// 'st' is the streamed result that comes back from the target.
+	st, err := c.ActionJSON(context.Background(), &a)
+	if err != nil {
+		return s, fmt.Errorf("gRPC ActionJSON failed: %w", err)
+	}
+
+	for {
+		// Loop through the responses in the stream until there is nothing left.
+		r, err := st.Recv()
+		if err == io.EOF {
+			return s, nil
+		}
+		if len(r.GetErrors()) != 0 {
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
+		}
+		if len(r.GetYangjson()) > 0 {
+			s += r.GetYangjson()
 		}
 	}
 }
@@ -267,8 +287,7 @@ func ShowCmdJSONOutput(ctx context.Context, conn *grpc.ClientConn, cli string, i
 			return s, nil
 		}
 		if len(r.GetErrors()) != 0 {
-			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 		}
 		if len(r.GetJsonoutput()) > 0 {
 			s += r.GetJsonoutput()
@@ -299,8 +318,7 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 			return s, nil
 		}
 		if len(r.GetErrors()) != 0 {
-			si := strconv.FormatInt(id, 10)
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+			return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 		}
 		if len(r.GetYangjson()) > 0 {
 			s += r.GetYangjson()
@@ -322,23 +340,19 @@ func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64)
 		return fmt.Errorf("gRPC CliConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		si := strconv.FormatInt(id, 10)
-		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	return err
 }
 
 // CommitConfig commits a config. Need to clarify its use-case.
-func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id int64) (string, error) {
+func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm uint32, id int64) (string, error) {
 	var s string
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
-	si := strconv.FormatInt(id, 10)
-	// Commit metadata
-	m := pb.CommitMsg{Label: cm[0], Comment: cm[1]}
 
 	// 'a' is the object we send to the router via the stub.
-	a := pb.CommitArgs{Msg: &m, ReqId: id}
+	a := pb.CommitArgs{CommitID: cm, ReqId: id}
 
 	// 'r' is the result that comes back from the target.
 	r, err := c.CommitConfig(ctx, &a)
@@ -346,17 +360,16 @@ func CommitConfig(ctx context.Context, conn *grpc.ClientConn, cm [2]string, id i
 		return s, fmt.Errorf("gRPC CommitConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		return s, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	// What about r.ResReqId. Seems to equal to id sent.
-	return r.Result.String(), err
+	return r.String(), err
 }
 
 // CommitReplace issues a cli and JSON config to the target.
 func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, id int64) error {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
-	si := strconv.FormatInt(id, 10)
 
 	// 'a' is the object we send to the router via the stub.
 	a := pb.CommitReplaceArgs{Cli: cli, Yangjson: js, ReqId: id}
@@ -367,7 +380,7 @@ func CommitReplace(ctx context.Context, conn *grpc.ClientConn, cli, js string, i
 		return fmt.Errorf("gRPC CommitReplace failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		return fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	return err
 }
@@ -386,8 +399,7 @@ func MergeConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64
 		return -1, fmt.Errorf("gRPC MergeConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
@@ -407,8 +419,7 @@ func DeleteConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int6
 		return -1, fmt.Errorf("gRPC DeleteConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
@@ -428,8 +439,7 @@ func ReplaceConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int
 		return -1, fmt.Errorf("gRPC ReplaceConfig failed: %w", err)
 	}
 	if len(r.GetErrors()) != 0 {
-		si := strconv.FormatInt(id, 10)
-		return -1, fmt.Errorf("error triggered by remote host for ReqId: %s; %s", si, r.GetErrors())
+		return -1, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
 	}
 	return r.ResReqId, nil
 }
@@ -452,7 +462,6 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 	if err != nil {
 		return b, e, fmt.Errorf("gRPC CreateSubs failed: %w", err)
 	}
-	si := strconv.FormatInt(id, 10)
 
 	// TODO: Review the logic. Make sure this goroutine ends and propagate
 	// error messages
@@ -460,12 +469,12 @@ func GetSubscription(ctx context.Context, conn *grpc.ClientConn, p string, id in
 		r, err := st.Recv()
 		if err != nil {
 			close(b)
-			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %s", err, si)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %v", err, id)
 			return
 		}
 		if len(r.GetErrors()) != 0 {
 			close(b)
-			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %s", r.GetErrors(), si)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %v", r.GetErrors(), id)
 			return
 		}
 		for {
