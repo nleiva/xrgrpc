@@ -138,12 +138,9 @@ func newClientTLS(xr CiscoGrpcClient) (credentials.TransportCredentials, error) 
 	}
 	// TODO: make skipVerify an input. If false, you need to provice the CA cert.
 	skipVerify := true
-	xr.Domain = "ems.cisco.com"
 
 	config := &tls.Config{
-		// ServerName:         xr.Domain,
 		InsecureSkipVerify: skipVerify,
-		// RootCAs:            certPool,
 	}
 	return credentials.NewTLS(config), nil
 }

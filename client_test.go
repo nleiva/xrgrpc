@@ -353,7 +353,7 @@ func Server(t *testing.T, svc string) *grpc.Server {
 	}
 	creds, err := credentials.NewServerTLSFromFile(defaultCert, defaultKey)
 	if err != nil {
-		t.Fatalf("failed to construct TLS credentialst: %v", err)
+		t.Fatalf("failed to construct TLS credentials: %v", err)
 	}
 	// var opts []grpc.ServerOption
 	s := grpc.NewServer(
@@ -434,7 +434,7 @@ func TestConnect(t *testing.T) {
 		{name: "wrong target", target: "192.168.0.1:57344", err: "TBD"},
 		{name: "wrong certificate", certf: "example/input/certificate/ems5502-1.pem", err: "TBD"},
 		{name: "inexistent certificate", certf: "dummy", err: "TBD"},
-		{name: "No certificate", certf: ""},
+		{name: "No certificate", certf: "empty"},
 	}
 	s := Server(t, "none")
 
@@ -444,6 +444,9 @@ func TestConnect(t *testing.T) {
 			xc := x
 			if tc.certf != "" {
 				xc.Cert = tc.certf
+			}
+			if tc.certf == "empty" {
+				xc.Cert = ""
 			}
 			if tc.target != "" {
 				xc.Host = tc.target
