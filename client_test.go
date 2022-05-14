@@ -1,4 +1,3 @@
-// Big TODO: current coverage: 66.2% of statements
 package xrgrpc_test
 
 import (
@@ -19,24 +18,26 @@ import (
 )
 
 const (
-	defaultAddr    = "localhost"
-	defaultPort    = ":57344"
-	defaultUser    = "test"
-	defaultPass    = "test"
-	defaultCert    = "test/cert.pem"
-	defaultKey     = "test/key.pem"
-	defaultCmd     = "show test"
-	defaultYang    = "{\"Cisco-IOS-XR-test:tree\": [null]}"
-	defaultSubsID  = "TEST"
-	wrongCmd       = "show me the money"
-	wrongConf      = "confreg 0x00"
-	wrongYang      = "{\"Cisco-IOS-XR-fake:tree\": [null]}"
-	wrongCreds     = "incorrect username/password"
-	wrongSubsID    = "wrong Subscription ID"
-	wrongEncode    = "wrong encoding"
-	wrongCmdErr    = "wrong command"
-	wrongYangErr   = "wrong YANG path"
-	defaultTimeout = 5
+	defaultAddr            = "localhost"
+	defaultPort            = ":57344"
+	defaultUser            = "test"
+	defaultPass            = "test"
+	defaultCert            = "test/cert.pem"
+	defaultKey             = "test/key.pem"
+	defaultCmd             = "show test"
+	defaultYang            = "{\"Cisco-IOS-XR-test:tree\": [null]}"
+	defaultSubsID          = "TEST"
+	defaultCommitID uint32 = 100000002
+	wrongCmd               = "show me the money"
+	wrongConf              = "confreg 0x00"
+	wrongYang              = "{\"Cisco-IOS-XR-fake:tree\": [null]}"
+	wrongCreds             = "incorrect username/password"
+	wrongSubsID            = "wrong Subscription ID"
+	wrongEncode            = "wrong encoding"
+	wrongCmdErr            = "wrong command"
+	wrongYangErr           = "wrong YANG path"
+	wrongCommitID          = "wrong Commit ID"
+	defaultTimeout         = 5
 )
 
 // execServer implements the GRPCExecServer interface
@@ -89,31 +90,31 @@ func (s *execServer) ShowCmdJSONOutput(a *pb.ShowCmdArgs, stream pb.GRPCExec_Sho
 	return nil
 }
 
-// func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
-// 	if a.GetYangpathjson() != defaultYang {
-// 		err := stream.Send(&pb.ActionJSONReply{
-// 			ResReqId: a.GetReqId(),
-// 			Errors:   wrongCmdErr,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-// 		return errors.New(wrongCmdErr)
-// 	}
-// 	m := map[string]string{"result": "action test output"}
-// 	j, err := json.Marshal(m)
-// 	if err != nil {
-// 		return errors.New("could not encode the test response")
-// 	}
-// 	err = stream.Send(&pb.ActionJSONReply{
-// 		ResReqId: a.GetReqId(),
-// 		Yangjson: string(j),
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func (s *execServer) ActionJSON(a *pb.ActionJSONArgs, stream pb.GRPCExec_ActionJSONServer) error {
+	if a.GetYangpathjson() != defaultYang {
+		err := stream.Send(&pb.ActionJSONReply{
+			ResReqId: a.GetReqId(),
+			Errors:   wrongCmdErr,
+		})
+		if err != nil {
+			return err
+		}
+		return errors.New(wrongCmdErr)
+	}
+	m := map[string]string{"result": "action test output"}
+	j, err := json.Marshal(m)
+	if err != nil {
+		return errors.New("could not encode the test response")
+	}
+	err = stream.Send(&pb.ActionJSONReply{
+		ResReqId: a.GetReqId(),
+		Yangjson: string(j),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // operConfigServer implements the GRPCConfigOperServer interface
 type operConfigServer struct {
@@ -213,19 +214,16 @@ func (s *operConfigServer) CommitReplace(ctx context.Context, a *pb.CommitReplac
 
 // CommitConfig commits a config. Need to clarify its use-case.
 func (s *operConfigServer) CommitConfig(ctx context.Context, a *pb.CommitArgs) (r *pb.CommitReply, err error) {
-	Msg := "test"
-	if a.GetMsg().Comment != Msg {
-		err = errors.New(wrongCmdErr)
+	if a.GetCommitID() != defaultCommitID {
+		err = errors.New(wrongCommitID)
 		r = &pb.CommitReply{
-			Result:   pb.CommitResult_FAIL,
 			ResReqId: a.GetReqId(),
-			Errors:   wrongCmdErr,
+			Errors:   wrongCommitID,
 		}
 		return
 	}
 	r = &pb.CommitReply{
 		ResReqId: a.GetReqId(),
-		Result:   pb.CommitResult_CHANGE,
 	}
 	return
 }
@@ -235,7 +233,7 @@ func (s *operConfigServer) ConfigDiscardChanges(context.Context, *pb.DiscardChan
 	return nil, nil
 }
 
-func (s *operConfigServer) GetOper(a *pb.ConfigGetArgs, stream pb.GRPCConfigOper_GetOperServer) error {
+func (s *operConfigServer) GetOper(a *pb.GetOperArgs, stream pb.GRPCConfigOper_GetOperServer) error {
 	if a.GetYangpathjson() != defaultYang {
 		err := stream.Send(&pb.GetOperReply{
 			ResReqId: a.GetReqId(),
@@ -999,21 +997,20 @@ func TestCommitConfig(t *testing.T) {
 		Domain:   "localhost",
 		Timeout:  defaultTimeout,
 	}
-	defaultMsg := [2]string{"test", "test"}
 
 	tt := []struct {
 		name string
-		msg  [2]string
+		cid  uint32
 		user string
 		pass string
 		err  string
 	}{
 		// The order of these test do matter, we change credentials
 		// on the last ones.
-		{name: "local connection", msg: defaultMsg},
-		{name: "wrong config", msg: [2]string{"unknown", "anything"}, err: wrongCmdErr},
-		{name: "wrong user", msg: defaultMsg, user: "bob", err: wrongCreds},
-		{name: "wrong password", msg: defaultMsg, pass: "password", err: wrongCreds},
+		{name: "local connection", cid: defaultCommitID},
+		{name: "wrong config", cid: defaultCommitID, err: wrongCmdErr},
+		{name: "wrong user", cid: defaultCommitID, user: "bob", err: wrongCreds},
+		{name: "wrong password", cid: defaultCommitID, pass: "password", err: wrongCreds},
 	}
 	s := Server(t, "opercon")
 	conn, ctx, err := xr.Connect(x)
@@ -1041,7 +1038,7 @@ func TestCommitConfig(t *testing.T) {
 					t.Fatalf("could not setup a client connection to %v", x.Host)
 				}
 			}
-			_, err := xr.CommitConfig(ctx, conn, tc.msg, id)
+			_, err := xr.CommitConfig(ctx, conn, tc.cid, id)
 			if err != nil {
 				if strings.Contains(err.Error(), wrongCreds) && tc.err == wrongCreds {
 					return

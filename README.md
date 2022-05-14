@@ -45,6 +45,11 @@ The end goal is to enable use-cases where multiple interactions with devices are
       - [JSON (GPBKV): OpenConfig](#json-gpbkv-openconfig)
       - [GPB (Protobuf)](#gpb-protobuf)
     + [Config and Validate](#config-and-validate)
+    + [Actions](#actions)
+      - [Ping](#ping)
+      - [Traceroute](#traceroute)
+      - [Log Generation](#log-generation)
+      - [Crypto Key Generation](#crypto-key-generation)
     + [Bypass the config file](#bypass-the-config-file)
   * [XR gRPC Config](#xr-grpc-config)
     + [Port range](#port-range)
@@ -728,8 +733,6 @@ telemetry model-driven
 ```
 
 ### Actions
-
->*NOTE*: Support for actions has been deprecated on XR, most likely in favor of gNOI.
 
 There are multiple actions than can be triggered via gRPC on IOS XR devices running 6.3.1 or later. Below the YANG models supported to the date and some examples using this library.
 
