@@ -26,6 +26,7 @@ const (
 	defaultKey             = "test/key.pem"
 	defaultCmd             = "show test"
 	defaultYang            = "{\"Cisco-IOS-XR-test:tree\": [null]}"
+	defaultOperYang        = "{\"Cisco-IOS-XR-controller-optics-oper:optics-oper\": [null]}"
 	defaultSubsID          = "TEST"
 	defaultCommitID uint32 = 100000002
 	wrongCmd               = "show me the money"
@@ -704,6 +705,51 @@ func TestGetConfig(t *testing.T) {
 					return
 				}
 				t.Fatalf("failed to get config from %v", x.Host)
+			}
+		})
+		id++
+	}
+	conn.Close()
+	s.Stop()
+	// To avoid tests failing in Travis CI, we sleep for 0.2 seconds, otherwise it
+	// reports 'bind: address already in use' when trying to run the next function test
+	time.Sleep(200 * time.Millisecond)
+}
+
+func TestGetOper(t *testing.T) {
+	x := xr.CiscoGrpcClient{
+		User:     defaultUser,
+		Password: defaultPass,
+		Host:     strings.Join([]string{defaultAddr, defaultPort}, ""),
+		Cert:     defaultCert,
+		Domain:   "localhost",
+		Timeout:  defaultTimeout,
+	}
+
+	tt := []struct {
+		name  string
+		paths string
+		enc   int64
+		err   string
+	}{
+		{name: "local connection", paths: defaultOperYang},
+		{name: "wrong paths", paths: wrongYang, err: wrongYangErr},
+	}
+	s := Server(t, "none")
+	conn, ctx, err := xr.Connect(x)
+	if err != nil {
+		t.Fatalf("could not setup a client connection to %v", x.Host)
+	}
+	var id int64 = 1
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := xr.GetOper(ctx, conn, tc.paths, id)
+			fmt.Println(output)
+			if err != nil {
+				if strings.Contains(err.Error(), wrongYangErr) && tc.err == wrongYangErr {
+					return
+				}
+				t.Fatalf("failed to get operation data %v", x.Host)
 			}
 		})
 		id++
