@@ -119,24 +119,43 @@ config from sandbox-iosxr-1.cisco.com:57777
 
 ### Get Operation
 
-Provides the output of IOS XR operations data (eg. optic light levels) from YANG/JSON formatted request, from the list in [config.json](example/input/config.json). It reads the target from [yangoper.json](example/input/yangoper.json).
+Provides the output of IOS XR operations data (eg. rib or route table) from YANG/JSON formatted request, from the list in [config.json](example/input/config.json). It reads the target from [getoper.json](example/input/getoper.json).
 
 -  example/getoper
 ``` console
 $ ./getoper
+{
+ "Cisco-IOS-XR-ip-rib-ipv4-oper:rib": {
+...<snip>...
+  "vrfs": {
+   "vrf": [
+    {
+     "vrf-name": "default",
+     "afs": {
+      "af": [
+       {
+        "af-name": "IPv4",
+        "safs": {
+         "saf": [
+          {
+           "saf-name": "Unicast",
+           "ip-rib-route-table-names": {
+            "ip-rib-route-table-name": [
+             {
+              "route-table-name": "default",
+              "routes": {
+               "route": [
+                {
+                 "address": "1.1.1.100",
+                 "prefix-length": 32,
+                 "prefix": "1.1.1.100",
+                 "prefix-length-xr": 32,
+                 "route-version": 2,
+                 "protocol-id": 1,
+                 "protocol-name": "local",
+...<snip>...
+                }
 
-<snip>
-      "optics-db-info": {
-      "transport-admin-state": "tas-ui-is",
-      "controller-state": "optics-state-up"
-     }
-    }
-   ]
-  }
- }
-}
-
-2023/05/12 10:08:27 This process took 4.465176769s
 ```
 ### Show Commands
 

@@ -325,34 +325,60 @@ func GetConfig(ctx context.Context, conn *grpc.ClientConn, js string, id int64) 
 
 // GetOper returns the operation data for specific YANG path elements
 // described in 'js'.
-func GetOper(ctx context.Context, conn *grpc.ClientConn, js string, id int64) (string, error) {
-	var s string
+func GetOper(ctx context.Context, conn *grpc.ClientConn, js string, id int64) (chan string, chan error, error) {
 	// 'c' is the gRPC stub.
 	c := pb.NewGRPCConfigOperClient(conn)
-
+	// 'b' is the bytes channel where Oper data is sent.
+	b := make(chan string)
+	// 'e' is the error channel where error messages are sent.
+	e := make(chan error)
 	// 'a' is the object we send to the router via the stub.
 	a := pb.GetOperArgs{ReqId: id, Yangpathjson: js}
 
 	// 'st' is the streamed result that comes back from the target.
 	st, err := c.GetOper(ctx, &a)
 	if err != nil {
-		return s, fmt.Errorf("gRPC GetConfig failed: %w", err)
+		return b, e,  fmt.Errorf("gRPC GetConfig failed: %w", err)
 	}
 
-	for {
-		// Loop through the responses in the stream until there is nothing left.
+	// TODO: Review the logic. Make sure this goroutine ends and propagate
+	// error messages
+	go func() {
 		r, err := st.Recv()
-		if err == io.EOF {
-			return s, nil
+		if err != nil {
+			close(b)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %v", err, id)
+			return
 		}
 		if len(r.GetErrors()) != 0 {
-			return s, fmt.Errorf("error triggered by remote host for ReqId: %v; %s", id, r.GetErrors())
+			close(b)
+			e <- fmt.Errorf("error triggered by remote host: %s, ReqID: %v", r.GetErrors(), id)
+			return
 		}
-		if len(r.GetYangjson()) > 0 {
-			s += r.GetYangjson()
+		for {
+			select {
+			case <-ctx.Done():
+				close(b)
+				return
+			case b <- r.GetYangjson():
+				r, err = st.Recv()
+				if err == io.EOF {
+					close(b)
+					return
+				}
+				if err != nil {
+					// We do not report this error for now. If sent and main does not
+					// receive it, it would hang forever.
+					// e <- fmt.Errorf("%s, ReqID: %s", err, si)
+					close(b)
+					return
+				}
+			}
 		}
-	}
+	}()
+	return b, e, err
 }
+
 
 // CLIConfig configs the target with CLI commands described in 'cli'.
 func CLIConfig(ctx context.Context, conn *grpc.ClientConn, cli string, id int64) error {
