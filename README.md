@@ -25,37 +25,41 @@ The end goal is to enable use-cases where multiple interactions with devices are
 ## Table of Contents
 
 - [gRPC library for Cisco IOS XR](#grpc-library-for-cisco-ios-xr)
-  * [Prerequisite Tools](#prerequisite-tools)
-  * [Usage](#usage)
-    + [Get Config](#get-config)
-    + [Show Commands](#show-commands)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisite Tools](#prerequisite-tools)
+  - [Usage](#usage)
+    - [Get Config (example/getconfig)](#get-config-examplegetconfig)
+    - [Get Operation](#get-operation)
+    - [Show Commands](#show-commands)
       - [Clear text](#clear-text)
       - [JSON](#json)
-    + [Configuring the router](#configuring-the-router)
+    - [Configuring the router](#configuring-the-router)
       - [CLI config (Merge)](#cli-config-merge)
       - [JSON (Merge)](#json-merge)
       - [JSON (Replace)](#json-replace)
       - [Using a YANG config Template (Merge)](#using-a-yang-config-template-merge)
-    + [Removing router config](#removing-router-config)
+    - [Removing router config](#removing-router-config)
       - [JSON](#json-1)
-    + [CLI config multiple routers simultaneously (Merge)](#cli-config-multiple-routers-simultaneously-merge)
-    + [Telemetry](#telemetry)
+    - [CLI config multiple routers simultaneously (Merge)](#cli-config-multiple-routers-simultaneously-merge)
+    - [Telemetry](#telemetry)
       - [JSON (GPBKV)](#json-gpbkv)
       - [JSON (GPBKV): Exploring the fields](#json-gpbkv-exploring-the-fields)
       - [JSON (GPBKV): OpenConfig](#json-gpbkv-openconfig)
       - [GPB (Protobuf)](#gpb-protobuf)
-    + [Config and Validate](#config-and-validate)
-    + [Actions](#actions)
+    - [Config and Validate](#config-and-validate)
+    - [Actions](#actions)
       - [Ping](#ping)
       - [Traceroute](#traceroute)
       - [Log Generation](#log-generation)
       - [Crypto Key Generation](#crypto-key-generation)
-    + [Bypass the config file](#bypass-the-config-file)
-  * [XR gRPC Config](#xr-grpc-config)
-    + [Port range](#port-range)
-  * [Certificate file](#certificate-file)
-  * [Compiling the proto files](#compiling-the-proto-files)
-  * [Compiling the Examples](#compiling-the-examples)
+    - [Bypass the config file](#bypass-the-config-file)
+  - [XR gRPC Config](#xr-grpc-config)
+    - [Port range](#port-range)
+  - [Certificate file](#certificate-file)
+    - [Self-signed certificate for package testing](#self-signed-certificate-for-package-testing)
+  - [Generating Go binding from protobuf files](#generating-go-binding-from-protobuf-files)
+  - [Running the examples](#running-the-examples)
+    - [Links](#links)
 
 ## Prerequisite Tools
 
@@ -113,6 +117,27 @@ config from sandbox-iosxr-1.cisco.com:57777
 2022/05/11 16:55:36 This process took 715.136564ms
 ```
 
+### Get Operation
+
+Provides the output of IOS XR operations data (eg. optic light levels) from YANG/JSON formatted request, from the list in [config.json](example/input/config.json). It reads the target from [yangoper.json](example/input/yangoper.json).
+
+-  example/getoper
+``` console
+$ ./getoper
+
+<snip>
+      "optics-db-info": {
+      "transport-admin-state": "tas-ui-is",
+      "controller-state": "optics-state-up"
+     }
+    }
+   ]
+  }
+ }
+}
+
+2023/05/12 10:08:27 This process took 4.465176769s
+```
 ### Show Commands
 
 Provides the output of IOS XR cli commands for one router defined in [config.json](example/input/config.json). Two output format options are available; Unstructured text and JSON encoded:

@@ -26,10 +26,7 @@ service gRPCConfigOper {
 
     rpc ConfigDiscardChanges(DiscardChangesArgs) returns(DiscardChangesReply) {};
 
-    // Get only returns oper data
-    //
     rpc GetOper(GetOperArgs) returns(stream GetOperReply) {};
-    // Do we need "Get" also to give combined oper and config?
 
     // Get Telemetry Data
     rpc CreateSubs(CreateSubsArgs) returns(stream CreateSubsReply) {};
