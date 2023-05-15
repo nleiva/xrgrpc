@@ -7,7 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"log"
 	"math/rand"
 	"time"
@@ -51,7 +51,7 @@ func main() {
 	defer conn.Close()
 
 	// Get YANG config file to delete
-	js, err := ioutil.ReadFile(*ypath)
+	js, err := os.ReadFile(*ypath)
 	if err != nil {
 		log.Fatalf("could not read file: %v: %v\n", *ypath, err)
 	}

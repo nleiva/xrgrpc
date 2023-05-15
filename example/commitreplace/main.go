@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"log"
 	"math/rand"
 	"time"
@@ -47,7 +47,7 @@ func main() {
 	defer conn.Close()
 
 	// Get config to apply on target
-	base, err := ioutil.ReadFile(*file)
+	base, err := os.ReadFile(*file)
 	if err != nil {
 		log.Fatalf("could not read file: %v: %v\n", *file, err)
 	}

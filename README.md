@@ -63,7 +63,7 @@ The end goal is to enable use-cases where multiple interactions with devices are
 
 ## Prerequisite Tools
 
-* [Go (at least Go 1.17)](https://golang.org/dl/)
+* [Go (at least Go 1.19)](https://golang.org/dl/)
 
 ## Usage
 

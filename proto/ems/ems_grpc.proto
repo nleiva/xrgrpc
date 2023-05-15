@@ -26,7 +26,10 @@ service gRPCConfigOper {
 
     rpc ConfigDiscardChanges(DiscardChangesArgs) returns(DiscardChangesReply) {};
 
+    // Get only returns oper data
+    //
     rpc GetOper(GetOperArgs) returns(stream GetOperReply) {};
+    // Do we need "Get" also to give combined oper and config?
 
     // Get Telemetry Data
     rpc CreateSubs(CreateSubsArgs) returns(stream CreateSubsReply) {};
@@ -47,8 +50,6 @@ service gRPCExec {
 }
 
 service OpenConfiggRPC {
-    rpc SubscribeTelemetry(SubscribeRequest) returns (stream SubscribeResponse) {};
-    rpc UnSubscribeTelemetry(CancelSubscribeReq) returns (SubscribeResponse) {};
     // get-models rpc implementation per
     // github.com/openconfig/public/blob/master/release/models/rpc/openconfig-rpc.yang
     rpc GetModels(GetModelsInput) returns (GetModelsOutput) {};
@@ -192,38 +193,6 @@ message CreateSubsReply {
     string errors = 3;
 }
 
-message SubscribeRequest {
-    int64 ReqId = 1;
-    oneof request {
-        SubscriptionList subscribe = 2;
-    }
-}
-
-message TelemetryStreamDestination {
-    string destination_address = 1;
-    uint32 destination_port = 2;
-    enum TSP {
-       TSP_TCP = 0;
-       TSP_GRPC = 1;
-    }
-    TSP telemetry_stream_protocol = 3;
-}
-
-message TelemetryPath {
-    string Path = 1;
-}
-
-message SubscriptionList {
-    repeated TelemetryStreamDestination TelemetryStreamDestinations = 1;
-    repeated TelemetryPath TelemetryPaths = 2;
-    uint64 sample_interval = 3;
-    enum ENC_SPEC {
-       ENC_KV_GPB = 0;
-       ENC_GPB = 1;
-    }
-    ENC_SPEC encoding = 4;
-    QOSMarking qos = 5;   // DSCP marking to be used.
-}
 enum OC_RPC_RESPONSE_TYPE {
     OK = 0;
     NOK = 1;
@@ -233,29 +202,6 @@ enum OC_RPC_RESPONSE_TYPE {
     UNSUPPORTED_INTERVAL = 5;
     UNSUPPORTED_ENCODING = 6;
     INVALID_SUBSCRIPTION_ID = 7;
-}
-
-message StatusResponse {
-    string message_json = 1;
-    OC_RPC_RESPONSE_TYPE code = 2;
-}
-
-message Notification {
-   bytes data = 1;
-}
-
-message SubscribeResponse {
-    int64 ResReqId = 1;
-    uint64 subscription_id = 2;
-    oneof response {
-        Notification update = 3;
-        StatusResponse status = 4;
-    }
-}
-
-message CancelSubscribeReq {
-    int64 ReqId = 1;
-    uint64 subscription_id = 2;
 }
 
 enum GET_MODEL_TYPE {
@@ -301,3 +247,4 @@ message GetProtoFileReply {
     string protoContent = 2;
     string errors = 3;
 }
+
